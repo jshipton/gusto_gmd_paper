@@ -1,6 +1,14 @@
 \documentclass[11pt, a4paper]{article}
 \usepackage{authblk}
 
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{natbib}
+\bibliographystyle{plainnat}
+
+\def\MM#1{\boldsymbol{#1}}
+
 \begin{document}
 
 \author[1,*]{Jemma Shipton}
@@ -12,9 +20,111 @@
 \affil[*]{Correspondence to: \texttt{j.shipton@exeter.ac.uk}}
 
 \title{Gusto: a toolkit for compatible finite element dynamical cores}
-\date{July 2022}
+\date{}
 
 \maketitle
 
+\section{Introduction}
+
+\subsection{Overview}
+
+\subsection{Motivation}
+Compatible finite elements provide a route to stable discretisations
+of the partial differential equations governing geophysical fluids
+which also have the correct wave propagation properties on non-uniform
+grids. While the wave propagation and required conservation properties
+guide the choice of finite element function spaces for the
+discretisation, there are many options for both the spatial and
+temporal discretisation and it is not clear which will be best for any
+particular problem. Gusto provides a flexible, easy-to-use toolkit of
+options for rapid prototyping of different spatial and temporal
+discretisations for geophysical fluid dynamics equations relevant to
+numerical weather and climate prediction.
+
+\section{Governing Equations}
+
+\subsection{Shallow Water Equations}
+The shallow water equations are commonly used for testing numerical
+algorithms and for exploring geophysical fluid dynamics concepts under
+simplified conditions. They are useful in both contexts since they are
+the simplest set of equations that model motion on both the slow,
+geostrophic timescale and the much faster timescale of the
+inertia-gravity waves. This timescale separation poses challenges to
+the numerical discretisation and also provides a rich enough range of
+dynamics to explain many of the phenomena observed in the atmosphere
+and oceans \citep{zeitlin2018geophysical}.
+
+The shallow water equations describe the flow of a shallow layer of
+fluid subject to gravitational and, optionally, rotational forces. The
+prognostic variables are the two horizontal velocity components
+$\MM{u} = (u, v)$ and the fluid depth $D = H + h - b$ where $H$ is the
+undisturbed depth of the fluid layer, $h$ is the perturbation to the
+fluid depth and $b$ is the bottom topography, if present. The
+equations are:
+
+\begin{align*}
+  \frac{\partial\MM{u}}{\partial t} + \MM{u}\cdot\nabla\MM{u} + f\MM{k}\times\MM{u} + g\nabla (D+b) &= 0, \\
+  \frac{\partial D}{\partial t} + \nabla\cdot(\MM{u}D) &= 0,
+\end{align*}
+where $f$ is the Coriolis parameter, $\MM{k}$ the vertical vector normal
+to the domain and $g$ the acceleration due to gravity. The nonlinear velocity
+advection term can be replaced by the sum of a vorticity-based term
+and the gradient of the kinetic energy. This is known as the vector
+invariant form and it enables the construction of vorticity based
+advection schemes that lead to conservation of energy and/or enstrophy
+(**refs). However, this form can exhibit numerical instabilities and
+it is not yet clear which is preferable so in Gusto we offer both
+forms of the equations.
+
+The finite element discretisation of these equations is formed by
+choosing appropriate function spaces for the prognostic variables,
+multiplying by test functions from these function spaces and
+integrating over the domain. In addition to this, we integrate by
+parts when the inter-element continuity of the basis functions is not
+sufficient to define the result of applying the differential operator
+directly. In line with the theory outlined in section \ref{}, we
+choose $\MM{u} \in \mathbb{V}_1$ and $D \in \mathbb{V}_2$ with
+$\mathbb{V}_1 \subset H(\text{div})$ and $\mathbb{V}_2 \subset L^2$. The
+corresponding test functions are denoted by $\MM{w}$ and $\phi$. This gives
+
+\begin{align*}
+  \int_\Omega\MM{w}\cdot\frac{\partial\MM{u}}{\partial t}dV + \MM{u}\cdot\nabla\MM{u} + f\MM{k}\times\MM{u} - \int_\Omega \nabla\cdot\MM{w} g(D+b) dV &= 0, \forall \MM{w}\in\mathbb{V}_1 \\
+  \int_\Omega\phi\frac{\partial D}{\partial t}dV + \int_\Omega\phi\nabla\cdot(\MM{u}D) dV &= 0, \forall \phi\in\mathbb{V}_2
+\end{align*}
+
+\subsection{Compressible Euler Equations}
+
+\subsection{Incompressible Boussinesq Equations}
+
+
+
+\section{Results}
+The aim of this section is to present a selection of results that
+demonstrate the tools available in Gusto, such as the choice of grids,
+different discretisation options, timestepping schemes and
+physics. The numerical properties of these configurations
+(convergence, stability, accuracy and efficiency) have either been
+demonstrated elsewhere, or will be investigated more thoroughly in
+future publications.
+
+\begin{itemize}
+\item grids
+\item FE order
+\item spatial discretisation options
+\item timestepping schemes
+\item physics
+\end{itemize}
+
+\subsection{Shallow water simulations}
+The standard suite of shallow water test cases originally proposed in
+\citet{williamson1992standard}
+
+
+
+\section{Discussion}
+
+\section{Code availability}
+
+\bibliography{references}
 
 \end{document}
