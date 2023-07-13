@@ -8,6 +8,7 @@
 \bibliographystyle{plainnat}
 
 \def\MM#1{\boldsymbol{#1}}
+\newcommand{\pp}[2]{\frac{\partial #1}{\partial #2}} 
 
 \begin{document}
 
@@ -24,44 +25,51 @@
 
 \maketitle
 
-\section{Background}
-
-
+\section{Introduction}
 
 \subsection{Motivation}
 \begin{itemize}
-\item route to discretisation of eqns with correct properties on non-uniform grids
-\item these properties are considered essential for dynamical cores
-\item non-uniform grids are considered important for parallel scaling
-\item many choices and research to be done therefore flexible implementation is useful
+\item many choices and research to be done - Colin says so in his Acta Numerica paper! - therefore flexible implementation is useful
 \end{itemize}
 
 Compatible finite elements provide a route to stable, consistent
 discretisations of the partial differential equations governing
-geophysical fluids which also have the correct wave propagation
-properties on non-uniform grids and avoid spurious computational
-modes. These properties, along with conservation of mass and
+geophysical fluids which also have the correct wave propagation speeds
+and avoid spurious computational modes, even on non-uniform
+grids. These properties, along with conservation of mass and
 potentially other quantities such as energy and enstrophy, are
 considered essential for the accuracy of the dynamical core of weather
-and climate models. While the wave propagation and required
-conservation properties guide the choice of finite element function
-spaces for the discretisation, there are many options for both the
+and climate models \citep{staniforth2012horizontal}. Achieving these
+properties on a non-uniform grid is important because of parallel
+scaling. While the required properties of the discretisation guide the
+choice of finite element spaces, there are many options for both the
 spatial and temporal discretisation and it is not clear which will be
 best for any particular problem. Gusto provides a flexible,
-easy-to-use toolkit of options for rapid prototyping of different
-spatial and temporal discretisations for geophysical fluid dynamics
-equations relevant to numerical weather and climate prediction.
+extensible, easy-to-use toolkit of options for rapid prototyping of
+different spatial and temporal discretisations based on the compatible
+finite element framework applied to geophysical fluid dynamics
+equations relevant to numerical weather and climate prediction. In
+this paper we introduce Gusto to the community, summarise its current
+capabilities and outline our vision for future development.
+
+\subsection{Background}
+
+\begin{itemize}
+\item overall theory is described in \citet{gibson2019compatible, cotter2023compatible}
+\item Gusto has grown out of code described in \citet{natale2016compatible, cotter2012mixed, bendall2019recovered, bendall2020compatible, yamazaki2017vertical, shipton2018higher}
+\item links to LFRic - we mention the Gung Ho project on the Gusto website so should describe that link here
+\end{itemize}
 
 In this article we will describe the current capabilities of Gusto and
 the design features that enable our flexible implementation whereby
 different spatial and temporal discretisations can be applied to a
-range of different equations sets relevant for geophysical fluid
+range of different equation sets relevant for weather and climate
 modelling. In section \ref{sec: governing} we will outline three
 different equation sets, along with their finite element
 discretisations. Then in section \ref{sec: design} we will present the
 code structure of Gusto followed by a detailed example (section
-\ref{sec: FML}) of the Form Manipulation Language that facilitates
-automatic manipulation of the finite element forms within our
+\ref{sec: FML}) of the Form Manipulation Language (FML) that facilitates
+symbolic manipulation of the finite element forms within our
 timestepping code. Section \ref{sec: results} contains a selection of
 numerical results that showcases the range of discretisations
 available within Gusto. We summarise our current status and future
@@ -69,7 +77,6 @@ directions in section \ref{sec: summary}.
 
 \section{Governing Equations}
 \label{sec: governing}
-
 The aim of this section is to introduce three governing equation sets
 commonly used in the development of weather and climate models, along
 with enough detail about the finite element discretiations provided by
@@ -77,7 +84,11 @@ Gusto to demonstrate the similarities between them. These similarities
 guide the design of the code structure described in the next section
 and motivate the use of Form Manipulation Labelling (FML) that
 underlies the flexibility of Gusto, a detailed example of which will
-be given in section \ref{sec: FML}.
+be given in section \ref{sec: FML}. The convention in Gusto is to
+write the equations in residual form, meaning that all the terms
+appear on the left hand side. We will follow this convention below in
+contrast to many papers which present the equations with the pressure
+gradient term and any forcing terms on the right hand side.
 
 \subsection{Shallow Water Equations}
 The shallow water equations are commonly used for testing numerical
@@ -99,11 +110,11 @@ fluid depth and $b$ is the bottom topography, if present. The
 equations are:
 
 \begin{align}
-  \frac{\partial\MM{u}}{\partial t} + \MM{u}\cdot\nabla\MM{u} + f\MM{k}\times\MM{u} + g\nabla (D+b) &= 0, \\
-  \frac{\partial D}{\partial t} + \nabla\cdot(\MM{u}D) &= 0,
+  \pp{\MM{u}}{t} + \MM{u}\cdot\nabla\MM{u} + f\hat{\MM{k}}\times\MM{u} + g\nabla (D+b) &= 0, \\
+  \pp{D}{t} + \nabla\cdot(D\MM{u}) &= 0,
 \end{align}
-where $f$ is the Coriolis parameter, $\MM{k}$ is the vertical vector
-normal to the domain and $g$ is the acceleration due to gravity. The
+where $f$ is the Coriolis parameter, $\hat{\MM{k}}$ is the unit vector
+pointing upwards and $g$ is the acceleration due to gravity. The
 nonlinear velocity advection term can be replaced by the sum of a
 vorticity-based term and the gradient of the kinetic energy. This is
 known as the vector invariant form and it enables the construction of
@@ -125,21 +136,63 @@ $\mathbb{V}_1 \subset H(\text{div})$ and $\mathbb{V}_2 \subset L^2$. The
 corresponding test functions are denoted by $\MM{w}$ and $\phi$. This gives
 
 \begin{align}
-  \int_\Omega\MM{w}\cdot\frac{\partial\MM{u}}{\partial t}dV + \int_\Omega\MM{w}\cdot(\MM{u}\cdot\nabla)\MM{u} dV + \int_\Omega\MM{w}\cdot f\MM{k}\times\MM{u}dV - \int_\Omega \nabla\cdot\MM{w} g(D+b) dV &= 0, \forall \MM{w}\in\mathbb{V}_1 \\
-  \int_\Omega\phi\frac{\partial D}{\partial t}dV + \int_\Omega\phi\nabla\cdot(\MM{u}D) dV &= 0, \forall \phi\in\mathbb{V}_2
+  \int_\Omega\MM{w}\cdot\pp{\MM{u}}{t}dV + \int_\Omega\MM{w}\cdot(\MM{u}\cdot\nabla)\MM{u} dV + \int_\Omega\MM{w}\cdot f\hat{\MM{k}}\times\MM{u}dV - \int_\Omega \nabla\cdot\MM{w} g(D+b) dV &= 0, \forall \MM{w}\in\mathbb{V}_1 \\
+  \int_\Omega\phi\pp{D}{t}dV + \int_\Omega\phi\nabla\cdot(D\MM{u}) dV &= 0, \forall \phi\in\mathbb{V}_2
+\end{align}
+
+\subsection{Compressible Boussinesq Equations}
+The compressible Boussinesq equations are commonly used in ocean
+modelling. They are useful from a numerical discretisation perspective
+because they incorporate compressibility effects without the
+complexity of discretising the nonlinear pressure gradient terms that
+we shall see in the compressible Euler equations. We write these
+equations in terms of the prognostic variables $\MM{u}$, $b$ and
+$p$ where $\MM{u}=(u, v, w)$ is now a three dimensional velocity
+field, $b$ is the fluid buoyancy and $p$ is pressure. In terms of
+these variables, the equations are:
+
+\begin{align}
+  \pp{\MM{u}}{t} + 
+  (\MM{u}\cdot\nabla)\MM{u} +
+  f\hat{\MM{k}}\times \MM{u} + \nabla p + b\hat{\MM{k}} & = 0, \\
+  \pp{p}{t} + c^2\nabla\cdot\MM{u} & = 0, \\
+  \pp{b}{t} + \MM{u}\cdot\nabla(b) & = 0, \\
 \end{align}
 
 \subsection{Compressible Euler Equations}
 The dynamical core at the heart of any weather or climate model solves
 the rotating compressible Euler equations that model atmospheric flow,
 often with additional approximations such as shallow vs deep
-atmosphere or hydrostatic vs non-hydrostatic flow. These equations can
-be written in terms of
+atmosphere or hydrostatic vs non-hydrostatic flow (** mention this
+here or at the end of the section??). We write these equations in
+terms of the prognostic variables $\MM{u}$, $\rho$ and $\theta$ where
+$\MM{u}=(u, v, w)$ is now a three dimensional velocity field, $\rho$
+is the fluid density and $\theta$ is the potential temperature. In
+terms of these variables, the equations are:
 
-\subsection{Compressible Boussinesq Equations}
+\begin{align}
+  \pp{\MM{u}}{t} + 
+  (\MM{u}\cdot\nabla)\MM{u} +
+  f\hat{\MM{k}}\times \MM{u} + c_p\theta\nabla \Pi + g\hat{\MM{k}} & = 0, \\
+  \pp{\rho}{t} + \nabla\cdot(\MM{u}\rho) & = 0, \\
+  \pp{\theta}{t} + \MM{u}\cdot\nabla\theta & = 0, \\
+  \Pi^{(1-\kappa)/\kappa} = \frac{R}{p_0}\rho\theta, & 
+\end{align}
 
 \section{Software Design}
 \label{sec: design}
+Gusto is built on top of the Firedrake package, an automated system
+for solving partial differential equations using the finite element
+method. This gives many advantages, not least that it provides the
+finite element machinery required to translate the discretisations
+written in the previous section in to the matrix-vector systems that
+we need to solve. This is done using the Unified Form Language (UFL),
+a domain specific language that enables the definition of the finite
+element forms within Python. The other packages that Firedrake depends
+on are summarised in \citet{davies2022towards} ** mention extruded
+meshes and PETSc?
+
+
 
 \begin{itemize}
 \item include schematic
@@ -152,26 +205,22 @@ be written in terms of
 
 \section{Results}
 \label{sec: results}
-
 The aim of this section is to present a selection of results that
 demonstrate the tools available in Gusto, such as the choice of grids,
-different discretisation options, timestepping schemes and
-physics. The numerical properties of these configurations
-(convergence, stability, accuracy and efficiency) have either been
-demonstrated elsewhere, or will be investigated more thoroughly in
-future publications.
-
-\begin{itemize}
-\item grids
-\item FE order
-\item spatial discretisation options
-\item timestepping schemes
-\item physics
-\end{itemize}
+order of finite element fucntion spaces, different spatial
+discretisation options, timestepping schemes and physics. The
+numerical properties of these configurations (convergence, stability,
+accuracy and efficiency) have either been demonstrated elsewhere, or
+will be investigated more thoroughly in future publications.
 
 \subsection{Shallow water simulations}
 The standard suite of shallow water test cases originally proposed in
-\citet{williamson1992standard}
+\citet{williamson1992standard} provides a common starting point for
+testing new discretisations. This test suite is usually augmented by
+the unstable barotropic jet described in \citet{galewsky2004initial}
+(**and linear tests?)
+
+
 
 
 
