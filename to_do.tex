@@ -1,0 +1,50 @@
+To Do:
+
+Code:
+* compressible Boussinesq equations class and examples
+* general mixed solve for the compressible Euler equations
+* merge transport wrapper PR and update all examples and scripts
+* fix vorticity function space
+* check hydrostatic Euler is correct
+* better provision of solver options?
+
+Decisions:
+* where to store scripts and how to archive them (GitHub repo + Zenodo)
+* which simulations to run (see later section)
+* will physics be part of this paper?
+
+Website:
+* dragon logo still apears in the top tab
+
+Simulations:
+* shallow water
+ - lowest order and next-to-lowest order
+ - cubed sphere and icosahedral sphere meshes
+ - range of timestepping schemes: show convergence plot of W2
+ - vector invariant vs advective form
+
+
+Writing:
+* describe advantages of building on top of Firedrake
+* compressible Euler section
+* compressible Boussinesq section
+* Gusto design
+* FML example
+ - generate code
+* future directions:
+ - structure preserving discretisations / vorticity based discretisations
+ - other equation sets
+ - PDC
+ - ML?
+ - coupled models (mention Thetis and / or Icepack?)
+
+Figures:
+* cubed sphere and icosahedral sphere grids
+* extruded mesh?
+* DOFs?
+* convergence plot of SW W2 (and W3?) for a range of timestepping schemes
+* snapshots of W5 (after 15 and 50 days), W6 and Galewsky
+* vertical slice gravity wave final state
+* vertical slice flow over orography
+* dense bubble
+* rising bubble
