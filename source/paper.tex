@@ -154,10 +154,13 @@ these variables, the equations are:
 \begin{align}
   \pp{\MM{u}}{t} + 
   (\MM{u}\cdot\nabla)\MM{u} +
-  f\hat{\MM{k}}\times \MM{u} + \nabla p + b\hat{\MM{k}} & = 0, \\
+  2\MM{\Omega}\times \MM{u} + \nabla p + b\hat{\MM{k}} & = 0, \\
   \pp{p}{t} + c^2\nabla\cdot\MM{u} & = 0, \\
-  \pp{b}{t} + \MM{u}\cdot\nabla(b) & = 0, \\
+  \pp{b}{t} + \MM{u}\cdot\nabla b & = 0,
 \end{align}
+where $\MM{\Omega}$ is the rotation vector of the domain,
+$\hat{\MM{k}}$ is the unit vector pointing upwards and $c$ is the
+acoustic wave speed.
 
 \subsection{Compressible Euler Equations}
 The dynamical core at the heart of any weather or climate model solves
@@ -173,11 +176,13 @@ terms of these variables, the equations are:
 \begin{align}
   \pp{\MM{u}}{t} + 
   (\MM{u}\cdot\nabla)\MM{u} +
-  f\hat{\MM{k}}\times \MM{u} + c_p\theta\nabla \Pi + g\hat{\MM{k}} & = 0, \\
+  2\MM{\Omega}\times \MM{u} + c_p\theta\nabla \Pi + g\hat{\MM{k}} & = 0, \\
   \pp{\rho}{t} + \nabla\cdot(\MM{u}\rho) & = 0, \\
   \pp{\theta}{t} + \MM{u}\cdot\nabla\theta & = 0, \\
   \Pi^{(1-\kappa)/\kappa} = \frac{R}{p_0}\rho\theta, & 
 \end{align}
+
+\subsection{}
 
 \section{Software Design}
 \label{sec: design}
@@ -207,11 +212,11 @@ meshes and PETSc?
 \label{sec: results}
 The aim of this section is to present a selection of results that
 demonstrate the tools available in Gusto, such as the choice of grids,
-order of finite element fucntion spaces, different spatial
-discretisation options, timestepping schemes and physics. The
-numerical properties of these configurations (convergence, stability,
-accuracy and efficiency) have either been demonstrated elsewhere, or
-will be investigated more thoroughly in future publications.
+order of finite element spaces, different spatial discretisation
+options, timestepping schemes and physics. The numerical properties of
+these configurations (convergence, stability, accuracy and efficiency)
+have either been demonstrated elsewhere, or will be investigated more
+thoroughly in future publications.
 
 \subsection{Shallow water simulations}
 The standard suite of shallow water test cases originally proposed in
