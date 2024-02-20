@@ -40,8 +40,8 @@ grids. These properties, along with conservation of mass and
 potentially other quantities such as energy and enstrophy, are
 considered essential for the accuracy of the dynamical core of weather
 and climate models \citep{staniforth2012horizontal}. Achieving these
-properties on a non-uniform grid is important because of parallel
-scaling. While the required properties of the discretisation guide the
+properties on a non-orthogonal grid is important because of parallel
+scaling**. While the required properties of the discretisation guide the
 choice of finite element spaces, there are many options for both the
 spatial and temporal discretisation and it is not clear which will be
 best for any particular problem. Gusto provides a flexible,
@@ -59,6 +59,19 @@ capabilities and outline our vision for future development.
 \item Gusto has grown out of code described in \citet{natale2016compatible, cotter2012mixed, bendall2019recovered, bendall2020compatible, yamazaki2017vertical, shipton2018higher}
 \item links to LFRic - we mention the Gung Ho project on the Gusto website so should describe that link here
 \end{itemize}
+
+The finite element method represents fields on a mesh made of
+non-overlapping, conforming cells, or elements. Within each element,
+the field is represented as a sum of coefficients multiplied by
+polynomial basis functions. The finite element space is specified by
+the degree of the polynomial basis functions and the continuity of
+these functions between the elements. The partial differential
+equations used in weather and climate modelling have multiple
+prognostic fields and it is not necessary, or indeed desirable, to use
+the same finite element function space for each field. Using different
+finite element function spaces for each field gives what is known as a
+mixed finite element discretisation. If the finite element function
+spaces are chosen so that
 
 In this article we will describe the current capabilities of Gusto and
 the design features that enable our flexible implementation whereby
@@ -124,22 +137,6 @@ schemes that conservation energy and/or enstrophy
 instabilities \citep{bell2017numerical} and it is not yet clear which
 form is preferable so in Gusto we offer both forms of the equations.
 
-The finite element discretisation of these equations is formed by
-choosing appropriate function spaces for the prognostic variables,
-multiplying by test functions from these function spaces and
-integrating over the domain. In addition to this, we integrate by
-parts when the inter-element continuity of the basis functions is not
-sufficient to define the result of applying the differential operator
-directly. In line with the theory outlined in section \ref{}, we
-choose $\MM{u} \in \mathbb{V}_1$ and $D \in \mathbb{V}_2$ with
-$\mathbb{V}_1 \subset H(\text{div})$ and $\mathbb{V}_2 \subset L^2$. The
-corresponding test functions are denoted by $\MM{w}$ and $\phi$. This gives
-
-\begin{align}
-  \int_\Omega\MM{w}\cdot\pp{\MM{u}}{t}dV + \int_\Omega\MM{w}\cdot(\MM{u}\cdot\nabla)\MM{u} dV + \int_\Omega\MM{w}\cdot f\hat{\MM{k}}\times\MM{u}dV - \int_\Omega \nabla\cdot\MM{w} g(D+b) dV &= 0, \forall \MM{w}\in\mathbb{V}_1 \\
-  \int_\Omega\phi\pp{D}{t}dV + \int_\Omega\phi\nabla\cdot(D\MM{u}) dV &= 0, \forall \phi\in\mathbb{V}_2
-\end{align}
-
 \subsection{Compressible Boussinesq Equations}
 The compressible Boussinesq equations are commonly used in ocean
 modelling. They are useful from a numerical discretisation perspective
@@ -179,10 +176,38 @@ terms of these variables, the equations are:
   2\MM{\Omega}\times \MM{u} + c_p\theta\nabla \Pi + g\hat{\MM{k}} & = 0, \\
   \pp{\rho}{t} + \nabla\cdot(\MM{u}\rho) & = 0, \\
   \pp{\theta}{t} + \MM{u}\cdot\nabla\theta & = 0, \\
-  \Pi^{(1-\kappa)/\kappa} = \frac{R}{p_0}\rho\theta, & 
+  \Pi^{(1-\kappa)/\kappa} & = \frac{R}{p_0}\rho\theta, & 
 \end{align}
+where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure,
+typically taken to be *, $R$ is ** and $\kappa$ is **.
 
-\subsection{}
+\subsection{Finite Element Discretisation}
+\label{sec: FEM}
+
+Comparing the equation sets given in the previous sections, we see
+several similarities. For example, the prognostic equation for the
+velocity always contains a nonlinear transport term, a term due to
+rotation and a pressure gradient term. The other prognostic fields
+satisfy either an advective or continuity form of the transport
+equation. These similarities remain when we formulate the compatible
+finite element discretisations, as we shall see below.
+
+The finite element discretisation is formed by choosing appropriate
+function spaces for the prognostic variables, multiplying by test
+functions from these function spaces and integrating over the
+domain. In addition to this, we integrate by parts when the
+inter-element continuity of the basis functions is not sufficient to
+define the result of applying the differential operator directly.
+
+** Don't do whole equation set - go term by term and try to write as
+few equations as possible.
+
+In line with the theory outlined in section \ref{}, we
+choose $\MM{u} \in \mathbb{V}_1$ and $D \in \mathbb{V}_2$ with
+$\mathbb{V}_1 \subset H(\text{div})$ and $\mathbb{V}_2 \subset L^2$. The
+corresponding test functions are denoted by $\MM{w}$ and $\phi$. This gives
+
+
 
 \section{Software Design}
 \label{sec: design}
@@ -190,19 +215,25 @@ Gusto is built on top of the Firedrake package, an automated system
 for solving partial differential equations using the finite element
 method. This gives many advantages, not least that it provides the
 finite element machinery required to translate the discretisations
-written in the previous section in to the matrix-vector systems that
+written in the previous section in to the matrix-vector equations that
 we need to solve. This is done using the Unified Form Language (UFL),
 a domain specific language that enables the definition of the finite
 element forms within Python. The other packages that Firedrake depends
-on are summarised in \citet{davies2022towards} ** mention extruded
-meshes and PETSc?
+on are summarised in \citet{davies2022towards} but we note that we
+make particular use of higher order mesh representation on curved
+manifolds (**ref), extruded meshes (**ref) and the PETSc library
+solver options (**ref).
 
+Prognostic equation sets are each defined in a python class, making
+use of the common finite element forms for the transport and
+difffusion terms.
 
+** mention physics source terms?
 
 \begin{itemize}
 \item include schematic
 \item generic example - no FML
-\item lead in to next section... facilitated by FML
+\item lead in to next section... facilitated by FML i.e. timesteppers don't care what equations they're given because forms are labelled
 \end{itemize}
 
 \section{Form Manipulation Labelling}
