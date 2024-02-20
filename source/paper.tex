@@ -13,6 +13,7 @@
 
 \def\MM#1{\boldsymbol{#1}}
 \newcommand{\pp}[2]{\frac{\partial #1}{\partial #2}} 
+\newcommand{\JScomment}[1]{\textit{\textbf{Jemma says: #1}}}
 
 %% Journal abbreviations (please use the same for preprints and final revised papers)
 
@@ -329,11 +330,27 @@ make particular use of higher order mesh representation on curved
 manifolds (**ref), extruded meshes (**ref) and the PETSc library
 solver options (**ref).
 
+\JScomment{Text here depends on what the schematic looks like - this
+  paragraph should refer to the schematic and explain all aspects}
 Prognostic equation sets are each defined in a python class, making
 use of the common finite element forms for the transport and
-difffusion terms.
-
-** mention physics source terms?
+difffusion terms. The timeloop class contains the definition of the
+timestepping procedure and the \texttt{run} method that loops over the
+timesteps. It also sets up diagnostic fields and calls the IO as
+required. The simplest timeloop class will just apply one time
+discretisation method to the equation set but it is common in weather
+and climate prediction models to split the different types of terms
+and apply a time discretisation separately to each type of term. For
+example, the transport and forcing terms might be solved for
+separately, such as in **, which enables explicit transport schemes to
+be applied to each field. ** something about SIQN structure. Terms
+related to the physics are solved for in the appropriate part of the
+iteration loop, with physics processes that occur on `fast' timescales
+evaluated more frequently and `slower' physics processes evaluated
+just once at the end of the timestep. The choice of where to evaluate
+the physics processes in the iteration is also based on the
+computational cost and the bast way to do this is still an open
+research question (**ref).
 
 \begin{itemize}
 \item include schematic
@@ -343,16 +360,29 @@ difffusion terms.
 
 \section{Form Manipulation Labelling}
 \label{sec: FML}
+The discussion of the time discretisation so far has been general i.e.
+not specific to any particular equation set. This is also true of the
+implementation of the timestepping schemes. This enables flexibility
+and reproducibility (**elaborate). This functionality is enabled
+through form manipulation labelling (FML) which is used to associate a
+label to each term in the residual form defined in the equation
+class. The timestepping methods are then able to reason about which
+manipulations to apply to which forms by applying filters. A simple
+example would be a splitting method that evaluates transport terms
+separately. The full residual is passed to the transport scheme which
+then applies a filter to drop all terms that are not labelled as
+transport.
+
 
 \section{Results}
 \label{sec: results}
 The aim of this section is to present a selection of results that
 demonstrate the tools available in Gusto, such as the choice of grids,
-order of finite element spaces, different spatial discretisation
-options, timestepping schemes and physics. The numerical properties of
-these configurations (convergence, stability, accuracy and efficiency)
-have either been demonstrated elsewhere, or will be investigated more
-thoroughly in future publications.
+HDiv element families, order of finite element spaces, different
+spatial discretisation options, timestepping schemes and physics. The
+numerical properties of these configurations (convergence, stability,
+accuracy and efficiency) have either been demonstrated elsewhere, or
+will be investigated more thoroughly in future publications.
 
 \subsection{Shallow water simulations}
 The standard suite of shallow water test cases originally proposed in
