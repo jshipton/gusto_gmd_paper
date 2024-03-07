@@ -353,13 +353,20 @@ make particular use of higher order mesh representation on curved
 manifolds (**ref), extruded meshes (**ref) and the PETSc library
 solver options (**ref).
 
+\begin{figure}
+  \centering{\includegraphics[width=0.8\textwidth]{gusto_schematic.png}}
+\end{figure}
+
 \JScomment{Text here depends on what the schematic looks like - this
-  paragraph should refer to the schematic and explain all aspects}
-Prognostic equation sets are each defined in a python class, making
-use of the common finite element forms for the transport and
-difffusion terms. The timeloop class contains the definition of the
-timestepping procedure and the \texttt{run} method that loops over the
-timesteps. It also sets up diagnostic fields and calls the IO as
+  paragraph should refer to the schematic and explain all aspects} The
+Gusto model comprises a domain and a prognostic equation set. The
+domain holds the mesh and the finite element function spaces along
+with any other information about the geometry such as the rotation
+vector. The Prognostic equation sets are each defined in a python
+class, making use of the common finite element forms for the transport
+and difffusion terms. The timeloop class contains the definition of
+the timestepping procedure and the \texttt{run} method that loops over
+the timesteps. It also sets up diagnostic fields and calls the IO as
 required. The simplest timeloop class will just apply one time
 discretisation method to the equation set but it is common in weather
 and climate prediction models to split the different types of terms
@@ -381,24 +388,24 @@ research question (**ref).
 \item lead in to next section... facilitated by FML i.e. timesteppers don't care what equations they're given because forms are labelled
 \end{itemize}
 
-\section{Form Manipulation Labelling}
+\section{Form Manipulation Language}
 \label{sec: FML}
 The discussion of the time discretisation so far has been general i.e.
 not specific to any particular equation set. This is also true of the
 implementation of the timestepping schemes. This enables flexibility
 and reproducibility (**elaborate). This functionality is enabled
-through form manipulation labelling (FML) which is used to associate a
-label to each term in the residual form defined in the equation
-class. The timestepping methods are then able to reason about which
-manipulations to apply to which forms by applying filters. A simple
-example would be a splitting method that evaluates transport terms and
-diffusion terms separately. The full residual is passed to the
-transport scheme which then applies a filter to drop all terms that
-are not labelled as transport; similarly for diffusion. We illustrate
-this procedure in figure \ref{fig:advdiff} where we show the
-definition of the residual for the advection diffusion equation for a
-scalar variable $q$ with a prescribed transport velocity $\MM{c}$ and
-diffusivity $\kappa$
+through the form manipulation language (FML) which is used to
+associate a label to each term in the residual form defined in the
+equation class. The timestepping methods are then able to reason about
+which manipulations to apply to which forms by applying filters. A
+simple example would be a splitting method that evaluates transport
+terms and diffusion terms separately. The full residual is passed to
+the transport scheme which then applies a filter to drop all terms
+that are not labelled as transport; similarly for diffusion. We
+illustrate this procedure in figure \ref{fig:advdiff} where we show
+the definition of the residual for the advection diffusion equation
+for a scalar variable $q$ with a prescribed transport velocity
+$\MM{c}$ and diffusivity $\kappa$
 
 \begin{equation}
   q_t + \MM{c}\cdot\nabla q - \kappa\nabla^2 q = 0,
