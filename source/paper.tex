@@ -12,6 +12,9 @@
 \documentclass[journal abbreviation, manuscript]{copernicus}
 
 \def\MM#1{\boldsymbol{#1}}
+\DeclareMathOperator{\diff}{d}
+\newcommand{\avg}[1]{\{#1\}}
+\newcommand{\jump}[1]{[\![#1]\!]}
 \newcommand{\pp}[2]{\frac{\partial #1}{\partial #2}} 
 \newcommand{\JScomment}[1]{\textit{\textbf{Jemma says: #1}}}
 
@@ -128,7 +131,12 @@
 TEXT
 \end{abstract}
 
-
+\begin{itemize}
+\item Section 1: why compatible FEM
+\item Section 2: why Gusto
+\item Sections 3 and 4: this is Gusto
+\item Section 5: and here are some examples of what we can currently do
+\end{itemize}
 
 \introduction   %% \introduction[modified heading if necessary]
 
@@ -268,14 +276,13 @@ acoustic wave speed.
 
 \subsection{Compressible Euler Equations}
 The dynamical core at the heart of any weather or climate model solves
-the rotating compressible Euler equations that model atmospheric flow,
-often with additional approximations such as shallow vs deep
-atmosphere or hydrostatic vs non-hydrostatic flow (** mention this
-here or at the end of the section??). We write these equations in
-terms of the prognostic variables $\MM{u}$, $\rho$ and $\theta$ where
-$\MM{u}=(u, v, w)$ is now a three dimensional velocity field, $\rho$
-is the fluid density and $\theta$ is the potential temperature. In
-terms of these variables, the equations are:
+the rotating compressible Euler equations that model atmospheric
+flow. We write these equations in terms of the prognostic variables
+$\MM{u}$, $\rho$ and $\theta$ where $\MM{u}=(u, v, w)$ is now a three
+dimensional velocity field, $\rho$ is the fluid density and $\theta$
+is the potential temperature. The pressure gradient term is written in
+terms of the Exner pressure $\Pi$ which is calculated through an
+equation of state. In terms of these variables, the equations are:
 
 \begin{align}
   \pp{\MM{u}}{t} + 
@@ -288,7 +295,7 @@ terms of these variables, the equations are:
 where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure,
 typically taken to be *, $R$ is ** and $\kappa$ is **.
 
-\subsection{Finite Element Discretisation}
+\section{Finite Element Discretisation}
 \label{sec: FEM}
 
 Comparing the equation sets given in the previous sections, we see
@@ -318,24 +325,69 @@ gradient term is chosen to be in the space $\mathbb{V}_p$ with
 $\mathbb{V}_p \subset L_2$. The compressible Boussinesq and
 compressible Euler equations have a third prognostic variable, either
 buoyancy or potential temperature, which is chosen to be in the space
-$\mathbb{V}_\theta$ with $\mathbb{V}_\theta \subset ??$ These choices
-are governed by the properties required of discretisation of the
-linearised equation sets (as discussed in section ** and other
-refs). To solve the nonlinear equation sets we need to introduce
-stable and accurate discretisations of the transport terms and the
-nonlinear pressure gradient term $c_p\theta\nabla \Pi$ in the
-compressible Euler velocity equation. Since the prognostic variables
-are discretised using different finite element function spaces
-$\mathbb{V}_u$, $\mathbb{V}_p$ and $\mathbb{V}_\theta$, each with
-different continuity properties between the elements, the choice of
-stable transport discretisation is different for each prognostic
-variable.
+$\mathbb{V}_\theta$ which has degrees of freedom that are collocated
+with those of the vertical velocity, mimicking the Charney-Phillips
+staggering as discussed in **. These choices are governed by the
+properties required of discretisation of the linearised equation sets
+(as discussed in section ** and other refs). To solve the nonlinear
+equation sets we need to introduce stable and accurate discretisations
+of the transport terms and the nonlinear pressure gradient term in the
+compressible Euler equation set. In addition, some test cases require
+the addition of viscous and diffusive terms to generate converged
+solutions \ref{}. In the following subsections we illustrate a
+non-exhaustive (**probably!) selection of the options available in
+Gusto.
+
+\subsection{Transport terms}
+Since the prognostic variables are discretised using different finite
+element function spaces $\mathbb{V}_u$, $\mathbb{V}_p$ and
+$\mathbb{V}_\theta$, each with different continuity properties between
+the elements, the choice of stable transport discretisation is
+different for each prognostic variable. 
 
 
+\subsection{Pressure gradient term}
+The pressure gradient term is discretised in a similar way for each
+equation set, with some additional considerations required for the
+nonlinear form of this term in the compressible Euler equations. Since
+the pressure (or depth, for shallow water) field is discretised in
+$\mathbb{V}_p \subset L_2$, the gradient is not defined globally and
+the term must be integrated by parts. In the linear case, using the
+notation for the compressible Boussinesq equations, the weak form is
 
+\begin{equation}
+\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x,
+\end{equation}
+where $\Omega$ denotes the domain and there are no surface terms from
+the integration by parts because these vanish on interior element
+boundaries since the normal component of $\MM{w}$ is continuous across
+element faces and on exterior boundaries we set no normal flow
+boundary conditions. However, the pressure gradient term in the
+compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
+this introduces an additional complication. Integrating by parts is
+still required since $\Pi$ is evaluated as a function of the density
+$\rho \in L_2$ and so is discontinuous, but this means that we now
+have a differential operator applied to $\theta \in \mathbb{V}_\theta$
+which is discontinuous in the vertical. Following \ref{} we integrate
+by parts in each element $e$, giving
+
+\begin{equation}
+  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\theta^-\MM{w}\cdot\MM{n}\Pi^- \diff S,
+\end{equation}
+where $\partial e$ denotes the element faces, $\MM{n}$ is the outward
+pointing normal to the face and $\cdot^-$ denotes the value of a
+variable on the interior side of the boundary. Summing over the domain
+gives
+
+\begin{equation}
+  c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S,
+\end{equation}
+where $\jump{\cdot}$ and $\avg{\cdot}$.
+
+\subsection{Viscous and diffusive terms}
 
 ** Don't do whole equation set - go term by term and try to write as
-few equations as possible.
+few equations as possible: transport, pressure gradient, diffusion
 
 
 \section{Software Design}
@@ -361,26 +413,26 @@ solver options (**ref).
   paragraph should refer to the schematic and explain all aspects} The
 Gusto model comprises a domain and a prognostic equation set. The
 domain holds the mesh and the finite element function spaces along
-with any other information about the geometry such as the rotation
-vector. The Prognostic equation sets are each defined in a python
-class, making use of the common finite element forms for the transport
-and difffusion terms. The timeloop class contains the definition of
-the timestepping procedure and the \texttt{run} method that loops over
-the timesteps. It also sets up diagnostic fields and calls the IO as
-required. The simplest timeloop class will just apply one time
-discretisation method to the equation set but it is common in weather
-and climate prediction models to split the different types of terms
-and apply a time discretisation separately to each type of term. For
-example, the transport and forcing terms might be solved for
-separately, such as in **, which enables explicit transport schemes to
-be applied to each field. ** something about SIQN structure. Terms
-related to the physics are solved for in the appropriate part of the
-iteration loop, with physics processes that occur on `fast' timescales
-evaluated more frequently and `slower' physics processes evaluated
-just once at the end of the timestep. The choice of where to evaluate
-the physics processes in the iteration is also based on the
-computational cost and the best way to do this is still an open
-research question (**ref).
+with any other information about the space-time domain such as the
+coordinates and the timestep. The Prognostic equation sets are each
+defined in a python class, making use of the common finite element
+forms for the transport and difffusion terms. The timeloop class
+contains the definition of the timestepping procedure and the
+\texttt{run} method that loops over the timesteps. It also sets up
+diagnostic fields and calls the IO as required. The simplest timeloop
+class will just apply one time discretisation method to the equation
+set but it is common in weather and climate prediction models to split
+the different types of terms and apply a time discretisation
+separately to each type of term. For example, the transport and
+forcing terms might be solved for separately, such as in **, which
+enables explicit transport schemes to be applied to each field. **
+something about SIQN structure. Terms related to the physics are
+solved for in the appropriate part of the iteration loop, with physics
+processes that occur on `fast' timescales evaluated more frequently
+and `slower' physics processes evaluated just once at the end of the
+timestep. The choice of where to evaluate the physics processes in the
+iteration is also based on the computational cost and the best way to
+do this is still an open research question (**ref).
 
 \begin{itemize}
 \item include schematic
@@ -435,12 +487,19 @@ will be investigated more thoroughly in future publications.
 To include:
 \begin{itemize}
 \item terminator toy (Tim)
-\item shallow water on different grids and with different HDiv families (Nell and Dan)
-\item convergence with different RK schemes / multistage schemes (Alex)
-\item vertical slice Boussinesq / Euler (+ moisture?)
-\item moist baroclinic wave in channel?? (Alex)
+\item shallow water on different grids and with different HDiv
+  families (Nell) e.g. Williamson 5 cubed sphere PV and Galewsky
+  icosahedral sphere PV, high res (ref 6)
+\item convergence with different RK schemes / multistage schemes using
+  Williamson 2 or 6, L2 and Linf errors for D and u (2 plots, one L2,
+  one Linf) (Alex)
+\item vertical slice Euler - Straka, different orders, illustrates
+  recovery for diffusion (Tom)
+\item 3D moist bubble with rain (Tom/Alex)
 \item spherical gravity wave, Boussinesq (Jemma)
-\item spherical baroclinic wave, Euler (Dan)
+\item spherical baroclinic wave, Euler - whatever people usually plot
+  (horizontal slice pressure contours, temperature shadng) (Dan)
+\item Held Suarez??
 \end{itemize}
 
 \subsection{Shallow water simulations}
