@@ -75,8 +75,8 @@
 %\usepackage{cancel}
 %\usepackage{multirow}
 %\usepackage{supertabular}
-%\usepackage{algorithmic}
-%\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{algorithm}
 %\usepackage{amsthm}
 %\usepackage{float}
 %\usepackage{subfig}
@@ -196,11 +196,12 @@ modelling. In section \ref{sec: governing} we will outline three
 different equation sets, along with their finite element
 discretisations. Then in section \ref{sec: design} we will present the
 code structure of Gusto followed by a detailed example (section
-\ref{sec: FML}) of the Form Manipulation Language (FML) that facilitates
-symbolic manipulation of the finite element forms within our
-timestepping code. Section \ref{sec: results} contains a selection of
-numerical results that showcases the range of discretisations
-available within Gusto. We summarise our current status and future
+\ref{sec: FML}) of the Form Manipulation Language (FML) that
+facilitates symbolic manipulation of the finite element forms within
+our timestepping code. Section \ref{sec: results} contains a selection
+of numerical results that showcases the range of discretisations
+available within Gusto. **mention here new functionality facilitated
+by the flexibility of Gusto? We summarise our current status and future
 directions in section \ref{sec: summary}.
 
 \section{Governing Equations}
@@ -210,7 +211,7 @@ commonly used in the development of weather and climate models, along
 with enough detail about the finite element discretiations provided by
 Gusto to demonstrate the similarities between them. These similarities
 guide the design of the code structure described in the next section
-and motivate the use of Form Manipulation Labelling (FML) that
+and motivate the use of Form Manipulation Language (FML) that
 underlies the flexibility of Gusto, a detailed example of which will
 be given in section \ref{sec: FML}. The convention in Gusto is to
 write the equations in residual form, meaning that all the terms
@@ -304,12 +305,12 @@ velocity always contains a nonlinear transport term, a term due to
 rotation and a `pressure' gradient term (in shallow water this is the
 gradient of the depth but the term plays the same role in the dynamics
 and is derived from the pressure gradient term in the full equations
-(**cite Zeitlin book)). The other prognostic fields satisfy either an
-advective or continuity form of the transport equation. These
-similarities remain when we formulate the compatible finite element
-discretisations, as we shall see below, and importantly this means
-that the discretisation of these terms can be written in a general way
-that means it can be applied to any of the equation sets.
+\citep{zeitlin2018geophysical}). The other prognostic fields satisfy
+either an advective or continuity form of the transport
+equation. These similarities remain when we formulate the compatible
+finite element discretisations, as we shall see below, and importantly
+this means that the discretisation of these terms can be written in a
+general way that means it can be applied to any of the equation sets.
 
 The finite element discretisation is formed by choosing appropriate
 function spaces for the prognostic variables, multiplying by test
@@ -361,7 +362,7 @@ notation for the compressible Boussinesq equations, the weak form is
 where $\Omega$ denotes the domain and there are no surface terms from
 the integration by parts because these vanish on interior element
 boundaries since the normal component of $\MM{w}$ is continuous across
-element faces and on exterior boundaries we set no normal flow
+element facets and on exterior boundaries we set no normal flow
 boundary conditions. However, the pressure gradient term in the
 compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
 this introduces an additional complication. Integrating by parts is
@@ -372,17 +373,25 @@ which is discontinuous in the vertical. Following \ref{} we integrate
 by parts in each element $e$, giving
 
 \begin{equation}
-  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\theta^-\MM{w}\cdot\MM{n}\Pi^- \diff S,
+  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S,
 \end{equation}
-where $\partial e$ denotes the element faces, $\MM{n}$ is the outward
-pointing normal to the face and $\cdot^-$ denotes the value of a
-variable on the interior side of the boundary. Summing over the domain
-gives
+where $\partial e$ denotes the element facets, $\MM{n}$ is the outward
+pointing normal to the facet and $\hat{q}$ denotes the value of a
+variable $q$ on the facet, which for discontinuous variables does not
+have a unique definition. Summing over the domain gives
 
 \begin{equation}
   c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S,
 \end{equation}
-where $\jump{\cdot}$ and $\avg{\cdot}$.
+where $\Gamma_v$ denotes the vertical element facets, across which
+$\theta$ is discontinuous. Here we have chosen, as in \ref{}, to take
+the average value of $\Pi$ across the facets, $\avg{\Pi} =
+(\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each side fo the
+facet. The brackets $\jump{q} = q^+-q^-$ denote the jump in a value
+across the facet and the integral over the horizontal facets vanishes
+since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous across
+these facets so the jump is zero.
+
 
 \subsection{Viscous and diffusive terms}
 
@@ -434,9 +443,16 @@ timestep. The choice of where to evaluate the physics processes in the
 iteration is also based on the computational cost and the best way to
 do this is still an open research question (**ref).
 
+\begin{algorithm}
+  \caption{Pseudocode for SIQN timestep loop}\label{alg:SIQN}
+  \begin{algorithmic}
+    \STATE
+  \end{algorithmic}
+\end{algorithm}
+
 \begin{itemize}
-\item include schematic
-\item generic example - no FML
+\item generic example(s) - no FML, just pseudocode for basic
+  timestepper, SIQN and split physics
 \item lead in to next section... facilitated by FML i.e. timesteppers don't care what equations they're given because forms are labelled
 \end{itemize}
 
@@ -502,12 +518,16 @@ To include:
 \item Held Suarez??
 \end{itemize}
 
-\subsection{Shallow water simulations}
+\subsection{Terminator `toy' chemistry}
+This test combines transport and a `toy' chemistry model to
+demonstrate physics-dynamics coupling in Gusto (where here chemistry
+is the `physics').
+
+\subsection{Shallow water}
 The standard suite of shallow water test cases originally proposed in
 \citet{williamson1992standard} provides a common starting point for
 testing new discretisations. This test suite is usually augmented by
 the unstable barotropic jet described in \citet{galewsky2004initial}
-(**and linear tests?)
 
 
 
