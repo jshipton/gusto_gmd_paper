@@ -542,27 +542,18 @@ where $q^n$ is the value of $q$ at time step $n$, $q^*$ is an
 intermediate value for $q$ and $\Delta t$ is the timestep.
 
 We illustrate the use of FML for this example in three steps: 1)
-define and label the residual; 2) build the explicit and implicit
-solvers; 3) run the timestepping loop. Since the intention of this
-example is to demonstrate FML rather than the compatible finite
-element discretisation, we use piecewise quadratic continuous Lagrange
-polynomials, $P_2$, for the finite element discretisation as this
-greatly simplifies the forms. The finite element discretisation of
-equation \ref{eq:1dadvdiff} is then
+define and label the weak form of the residual; 2) build the solvers
+for the explicit and implicit systems; 3) run the timestepping
+loop. Since the intention of this example is to demonstrate FML rather
+than the compatible finite element discretisation, we use space of piecewise
+quadratic continuous Lagrange polynomials, denoted by $P_2$, for the finite
+element discretisation as this greatly simplifies the forms. The
+finite element discretisation of equation \ref{eq:1dadvdiff} is then
 \begin{equation}\label{eq:weak-advdiff}
-  \int_\Omega vq \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0 \quad \forall v \in P_2,
+  \int_\Omega vq_t \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0, \quad \forall v \in P_2,
 \end{equation}
 where $v\in P_2$ is the test function and the diffusion term has been
 integrated by parts.
-
-
-
-%\begin{align}\label{eq:weak-advdiff}
-%  \int_\Omega vq^* \diff x &= \int_\Omega vq^n \diff x - \Delta t c \int_\Omega v q_x^n \diff x, &\quad \forall v \in P^2, \\
-%  \int_\Omega vq^{n+1} \diff x  + \Delta t \kappa \int_\Omega v_x q_x^{n+1} \diff x &= \int_\Omega vq^* \diff x, &\quad \forall v \in P^2,
-%\end{align}
-%where $v$ is the test function and the diffusion term has been
-%integrated by parts.
 
 Listing \ref{lst:define-residual} presents the code to define this
 spatial discretisation of the residual with the $P_2$ function space
@@ -575,14 +566,38 @@ the residual, i.e. the left hand side of equation
 \ref{eq:weak-advdiff}, using the FML labels \texttt{time\_derivative},
 \texttt{transport} and \texttt{diffusion} to tag the corresponding
 terms. The final line labels the function \texttt{q} as the subject of
-this residual. Note that the labels used for tagging just take the UFL
-form as an argument and their value is simply the default, \texttt{True}, in
-contrast to the \texttt{subject} label that has the value \texttt{q}.
+this residual, i.e. the prognostic field. Note that the labels used
+for tagging just take the UFL form as their argument and their value is
+simply the default, \texttt{True}, in contrast to the \texttt{subject}
+label that has the value \texttt{q}.
 
 \lstinputlisting[caption=blah, label={lst:define-residual}, language=python, firstline=24, lastline=31]{code/advection_diffusion_splitting_example.py}
 
-To define the solvers for the explicit and implicit steps, we make use
-of the predefined mappings \texttt{drop} and \texttt{keep} 
+To define the solvers for the explicit and implicit steps we need to create UFL forms for the left and right sides, given by the following equations
+\begin{align}
+  \label{eq:explicit-advdiff}
+  \int_\Omega vq^* \diff x &= \int_\Omega vq^n \diff x - \Delta t c \int_\Omega v q_x^n \diff x, &\quad \forall v \in P^2, \\
+  \label{eq:implicit-advdiff}
+  \int_\Omega vq^{n+1} \diff x  + \Delta t \kappa \int_\Omega v_x q_x^{n+1} \diff x &= \int_\Omega vq^* \diff x, &\quad \forall v \in P^2.
+\end{align}
+To do this we use the \texttt{label\_map} method to loop over the
+terms in the residual making use of the predefined mappings
+\texttt{drop} and \texttt{keep} to either remove or retain the term
+based on the value of the filter. This code is given in listings
+\ref{lst:define-explicit} and \ref{lst:define-implicit}. In listing
+\ref{lst:define-explicit} we create the left and right hand sides of
+equation \ref{eq:explicit-advdiff}. The left hand side should only
+contain the time derivative term so the filter checks if each term has
+the label \texttt{time\_derivative}, keeping the one that does and
+dropping all others. To make this the left hand side of a
+\texttt{LinearVariationalProblem}, we replace the subject with a trial
+function using the predefined \texttt{replace\_subject} function, a
+lightweight wrapper around the UFL replace method which extracts the
+subject of the term and replaces it with the new expression, in this
+case simply a trial function \texttt{q\_trial}. \JScomment{Is the
+  labelling for the rhs the clearest? maybe we should keep the terms
+  that we want rather than assuming that dropping diffusion gives the
+  right thing?}
 
 \lstinputlisting[caption=blah, label={lst:define-explicit}, language=python, firstline=38, lastline=53]{code/advection_diffusion_splitting_example.py}
 
