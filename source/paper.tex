@@ -207,17 +207,18 @@ directions in section \ref{sec: summary}.
 \section{Governing Equations}
 \label{sec: governing}
 The aim of this section is to introduce three governing equation sets
-commonly used in the development of weather and climate models, along
-with enough detail about the finite element discretiations provided by
-Gusto to demonstrate the similarities between them. These similarities
-guide the design of the code structure described in the next section
-and motivate the use of Form Manipulation Language (FML) that
-underlies the flexibility of Gusto, a detailed example of which will
-be given in section \ref{sec: FML}. The convention in Gusto is to
-write the equations in residual form, meaning that all the terms
-appear on the left hand side. We will follow this convention below in
-contrast to many papers which present the equations with the pressure
-gradient term and any forcing terms on the right hand side.
+commonly used in the development of discretisation methods for weather
+and climate models, along with enough detail about the finite element
+discretiations provided by Gusto to demonstrate the similarities
+between them. These similarities guide the design of the code
+structure described in the next section and motivate the use of Form
+Manipulation Language (FML) that underlies the flexibility of Gusto, a
+detailed example of which will be given in section \ref{sec: FML}. The
+convention in Gusto is to write the equations in residual form,
+meaning that all the terms appear on the left hand side. We will
+follow this convention below in contrast to many papers which present
+the equations with the pressure gradient term and any forcing terms on
+the right hand side.
 
 \subsection{Shallow Water Equations}
 The shallow water equations are commonly used for testing numerical
@@ -234,24 +235,16 @@ The shallow water equations describe the flow of a shallow layer of
 fluid subject to gravitational and, optionally, rotational forces. The
 prognostic variables are the two horizontal velocity components
 $\MM{u} = (u, v)$ and the fluid depth $D = H + h - b$ where $H$ is the
-undisturbed depth of the fluid layer, $h$ is the perturbation to the
-fluid depth and $b$ is the bottom topography, if present. The
+undisturbed depth of the fluid layer, $h$ is the free surface
+deviation from $H$, and $b$ is the bottom topography, if present. The
 equations are:
 
 \begin{align}
-  \pp{\MM{u}}{t} + \MM{u}\cdot\nabla\MM{u} + f\hat{\MM{k}}\times\MM{u} + g\nabla (D+b) &= 0, \\
+  \pp{\MM{u}}{t} + (\MM{u}\cdot\nabla)\MM{u} + f\hat{\MM{k}}\times\MM{u} + g\nabla (D+b) &= 0, \\
   \pp{D}{t} + \nabla\cdot(D\MM{u}) &= 0,
 \end{align}
 where $f$ is the Coriolis parameter, $\hat{\MM{k}}$ is the unit vector
-pointing upwards and $g$ is the acceleration due to gravity. The
-nonlinear velocity advection term can be replaced by the sum of a
-vorticity-based term and the gradient of the kinetic energy. This is
-known as the vector invariant form and it enables the construction of
-schemes that conservation energy and/or enstrophy
-\citep{mcrae2014energy, bauer2018energy, wimmer2020energy,
-  wimmer2021energy}. However, this form can exhibit numerical
-instabilities \citep{bell2017numerical} and it is not yet clear which
-form is preferable so in Gusto we offer both forms of the equations.
+pointing upwards and $g$ is the acceleration due to gravity.
 
 \subsection{Compressible Boussinesq Equations}
 The compressible Boussinesq equations are commonly used in ocean
@@ -259,42 +252,58 @@ modelling. They are useful from a numerical discretisation perspective
 because they incorporate compressibility effects without the
 complexity of discretising the nonlinear pressure gradient terms that
 we shall see in the compressible Euler equations. We write these
-equations in terms of the prognostic variables $\MM{u}$, $b$ and
-$p$ where $\MM{u}=(u, v, w)$ is now a three dimensional velocity
-field, $b$ is the fluid buoyancy and $p$ is pressure. In terms of
-these variables, the equations are:
+equations in terms of the prognostic variables $\MM{u}$, $b$ and $p$
+where $\MM{u}$ is a three dimensional velocity field, $b$ is the fluid
+buoyancy and $p$ is pressure. In terms of these variables, the
+equations are:
 
 \begin{align}
   \pp{\MM{u}}{t} + 
   (\MM{u}\cdot\nabla)\MM{u} +
   2\MM{\Omega}\times \MM{u} + \nabla p + b\hat{\MM{k}} & = 0, \\
   \pp{p}{t} + c^2\nabla\cdot\MM{u} & = 0, \\
-  \pp{b}{t} + \MM{u}\cdot\nabla b & = 0,
+  \pp{b}{t} + (\MM{u}\cdot\nabla) b & = 0,
 \end{align}
 where $\MM{\Omega}$ is the rotation vector of the domain,
 $\hat{\MM{k}}$ is the unit vector pointing upwards and $c$ is the
-acoustic wave speed.
+acoustic wave speed. The velocity $\MM{u}$ can be two or three
+dimensional, depending on whether the domain is a vertical slice
+described by $(x, z)$ coordinates, of a three dimensional domain
+described by $(x, y, z)$ coordinates.
 
 \subsection{Compressible Euler Equations}
 The dynamical core at the heart of any weather or climate model solves
 the rotating compressible Euler equations that model atmospheric
 flow. We write these equations in terms of the prognostic variables
-$\MM{u}$, $\rho$ and $\theta$ where $\MM{u}=(u, v, w)$ is now a three
-dimensional velocity field, $\rho$ is the fluid density and $\theta$
-is the potential temperature. The pressure gradient term is written in
-terms of the Exner pressure $\Pi$ which is calculated through an
-equation of state. In terms of these variables, the equations are:
+$\MM{u}$, $\rho$ and $\theta$ where $\MM{u}$ is the velocity field,
+$\rho$ is the fluid density and $\theta$ is the potential
+temperature. The pressure gradient term is written in terms of the
+Exner pressure $\Pi$ which is calculated through an equation of
+state. In terms of these variables, the equations are:
 
 \begin{align}
   \pp{\MM{u}}{t} + 
   (\MM{u}\cdot\nabla)\MM{u} +
   2\MM{\Omega}\times \MM{u} + c_p\theta\nabla \Pi + g\hat{\MM{k}} & = 0, \\
   \pp{\rho}{t} + \nabla\cdot(\MM{u}\rho) & = 0, \\
-  \pp{\theta}{t} + \MM{u}\cdot\nabla\theta & = 0, \\
+  \pp{\theta}{t} + (\MM{u}\cdot\nabla)\theta & = 0, \\
   \Pi^{(1-\kappa)/\kappa} & = \frac{R}{p_0}\rho\theta, & 
 \end{align}
 where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure,
-typically taken to be *, $R$ is ** and $\kappa$ is **.
+typically taken to be *, $R$ is ** and $\kappa$ is **. The velocity
+$\MM{u}$ can be two or three dimensional, depending on whether the
+domain is a vertical slice described by $(x, z)$ coordinates, of a
+three dimensional domain described by $(x, y, z)$ coordinates.
+
+In all of the equation sets described here, the nonlinear velocity
+advection term $(\MM{u}\cdot\nabla)\MM{u}$ can be replaced by the sum
+of a vorticity-based term and the gradient of the kinetic energy. This
+is known as the vector invariant form and it enables the construction
+of schemes that conservation energy and/or enstrophy
+\citep{mcrae2014energy, bauer2018energy, wimmer2020energy,
+  wimmer2021energy}. However, this form can exhibit numerical
+instabilities \citep{bell2017numerical} and it is not yet clear which
+form is preferable so in Gusto we offer both forms of the equations.
 
 \section{Finite Element Discretisation}
 \label{sec: FEM}
@@ -339,22 +348,15 @@ solutions \ref{}. In the following subsections we illustrate a
 non-exhaustive (**probably!) selection of the options available in
 Gusto.
 
-\subsection{Transport terms}
-Since the prognostic variables are discretised using different finite
-element function spaces $\mathbb{V}_u$, $\mathbb{V}_p$ and
-$\mathbb{V}_\theta$, each with different continuity properties between
-the elements, the choice of stable transport discretisation is
-different for each prognostic variable. 
-
-
 \subsection{Pressure gradient term}
 The pressure gradient term is discretised in a similar way for each
 equation set, with some additional considerations required for the
 nonlinear form of this term in the compressible Euler equations. Since
 the pressure (or depth, for shallow water) field is discretised in
-$\mathbb{V}_p \subset L_2$, the gradient is not defined globally and
-the term must be integrated by parts. In the linear case, using the
-notation for the compressible Boussinesq equations, the weak form is
+$\mathbb{V}_p \subset L_2$, meaning that it is discontinuous between
+cells, the gradient is not defined globally and the term must be
+integrated by parts. In the linear case, using the notation for the
+compressible Boussinesq equations, the weak form is
 
 \begin{equation}
 \int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x,
@@ -384,20 +386,33 @@ have a unique definition. Summing over the domain gives
   c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S,
 \end{equation}
 where $\Gamma_v$ denotes the vertical element facets, across which
-$\theta$ is discontinuous. Here we have chosen, as in \ref{}, to take
+$\theta$ is discontinuous. Here we have chosen, as in \citet{}, to take
 the average value of $\Pi$ across the facets, $\avg{\Pi} =
-(\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each side fo the
+(\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each side of the
 facet. The brackets $\jump{q} = q^+-q^-$ denote the jump in a value
 across the facet and the integral over the horizontal facets vanishes
 since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous across
 these facets so the jump is zero.
 
+\subsection{Transport terms}
+Since the prognostic variables are discretised using different finite
+element function spaces $\mathbb{V}_u$, $\mathbb{V}_p$ and
+$\mathbb{V}_\theta$, each with different continuity properties between
+the elements, the choice of stable transport discretisation is
+different for each prognostic variable. 
+
 
 \subsection{Viscous and diffusive terms}
 
-** Don't do whole equation set - go term by term and try to write as
-few equations as possible: transport, pressure gradient, diffusion
+For the simulations presented here we do not require viscous or
+diffusive terms for stability, but sometimes they are required to
+produce converged solutions, ie. so that refining the grid does not
+lead to smaller and smaller scale motions. Here we present the symmetric
+interior penalty discretisation method used for these terms in Gusto.
 
+\begin{equation}
+  \nu\int_\Omega\MM{w}\cdot\nabla^2\MM{u}\diff x = \nu\int_\Omega\nabla\MM{w}:\nabla\MM{u}\diff x
+\end{equation}
 
 \section{Software Design}
 \label{sec: design}
@@ -418,30 +433,40 @@ solver options (**ref).
   \centering{\includegraphics[width=0.8\textwidth]{gusto_schematic.png}}
 \end{figure}
 
-\JScomment{Text here depends on what the schematic looks like - this
-  paragraph should refer to the schematic and explain all aspects} The
-Gusto model comprises a domain and a prognostic equation set. The
-domain holds the mesh and the finite element function spaces along
-with any other information about the space-time domain such as the
-coordinates and the timestep. The Prognostic equation sets are each
-defined in a python class, making use of the common finite element
-forms for the transport and difffusion terms. The timeloop class
-contains the definition of the timestepping procedure and the
-\texttt{run} method that loops over the timesteps. It also sets up
-diagnostic fields and calls the IO as required. The simplest timeloop
-class will just apply one time discretisation method to the equation
-set but it is common in weather and climate prediction models to split
-the different types of terms and apply a time discretisation
-separately to each type of term. For example, the transport and
-forcing terms might be solved for separately, such as in **, which
-enables explicit transport schemes to be applied to each field. **
-something about SIQN structure. Terms related to the physics are
-solved for in the appropriate part of the iteration loop, with physics
-processes that occur on `fast' timescales evaluated more frequently
-and `slower' physics processes evaluated just once at the end of the
-timestep. The choice of where to evaluate the physics processes in the
-iteration is also based on the computational cost and the best way to
-do this is still an open research question (**ref).
+\JScomment{This paragraph should refer to the schematic and explain
+  all aspects} The Gusto model comprises a domain and a prognostic
+equation set. The domain holds the mesh and the finite element
+function spaces along with any other information about the space-time
+domain such as the coordinates and the timestep. The prognostic
+equation sets are each defined in a python class, making use of the
+common finite element forms for the transport and difffusion terms to
+set up the residual (defined in section \ref{}) in weak form. At this
+point, no particular discretisation of the transport or diffusion
+forms is specified. This happens in the \texttt{SpatialMethod} class
+which can be used to apply the methods described in section \ref{} to
+the relevant terms. Any physics source terms, such as **, are added by
+calling the \texttt{Physics} class that defines them. The
+\texttt{TimeStepper} class contains the definition of the timestepping
+procedure and the \texttt{run} method that loops over the
+timesteps. It also sets up diagnostic fields and calls the IO as
+required. The simplest timeloop class will just apply one time
+discretisation method to the equation set but it is common in weather
+and climate prediction models to split the different types of terms
+and apply a time discretisation separately to each type of term. For
+example, the transport and forcing terms might be solved for
+separately, such as in **, which enables explicit transport schemes to
+be applied to each field. ** something about SIQN structure. Terms
+related to the physics are solved for in the appropriate part of the
+iteration loop, with physics processes that occur on `fast' timescales
+evaluated more frequently and `slower' physics processes evaluated
+just once at the end of the timestep. The choice of where to evaluate
+the physics processes in the iteration is also based on the
+computational cost and the best way to do this is still an open
+research question (**ref).
+
+\begin{itemize}
+\item what about initialisation and diagnostics?
+\end{itemize}
 
 \begin{algorithm}
   \caption{Pseudocode for SIQN timestep loop}\label{alg:SIQN}
@@ -465,28 +490,105 @@ and reproducibility (**elaborate). This functionality is enabled
 through the form manipulation language (FML) which is used to
 associate a label to each term in the residual form defined in the
 equation class. The timestepping methods are then able to reason about
-which manipulations to apply to which forms by applying filters. A
-simple example would be a splitting method that evaluates transport
-terms and diffusion terms separately. The full residual is passed to
-the transport scheme which then applies a filter to drop all terms
-that are not labelled as transport; similarly for diffusion. We
-illustrate this procedure in figure \ref{fig:advdiff} where we show
-the definition of the residual for the advection diffusion equation
-for a scalar variable $q$ with a prescribed transport velocity
-$\MM{c}$ and diffusivity $\kappa$
+which manipulations to apply to which forms by applying filters. Here
+we will describe the objects required to define labels and filters
+before illustrating this with a simple example(s?).
 
-\begin{equation}
-  q_t + \MM{c}\cdot\nabla q - \kappa\nabla^2 q = 0,
+\subsection{Form Manipulation Language Objects}
+
+The finite element discretisation of each term in an equation is
+represented in Firedrake by a \texttt{ufl.Form} object. FML defines a
+\texttt{Term} object that comprises the \texttt{ufl.Form} defining the
+finite element discretisation of the term and a dictionary of
+key-value pairs corresponding to the FML \texttt{Label} objects that
+apply to this term. An FML \texttt{Label} object has a name and an
+optional value. When called on a \texttt{ufl.Form} object, the
+\texttt{Label} ** Labels can also be used to tag parts of the
+form. For example, the \texttt{subject} label is used to tag the
+\texttt{Function} in the \texttt{ufl.Form} that represents the
+prognostic variable. These operations are composable, so more than one
+label can be attached to a term.
+
+The end result is a \texttt{LabelledForm} object that holds a list of
+terms, pairing individual \texttt{ufl.Form} objects with an FML
+\texttt{label}. Labelled forms can be added together, multiplied by
+floats and have additional terms added. More complex manipulations are
+enabled by the \texttt{label\_map} method that provides a way of
+filtering the terms in the form based on their labels, applying
+different mappings to terms that pass or fail the conditions defined
+in the filter. A common operation might be to filter for terms that
+have a certain label, such as \texttt{transport}, drop terms that do
+not have this label and multiply those that do by the timestep. We
+shall demonstrate this in the following example.
+
+**describe methods has_label and get
+
+\subsection{Example}
+
+We demonstrate the use of FML by applying a split timestepping scheme
+to the 1D advection diffusion equation
+\begin{equation}\label{eq:1dadvdiff}
+  q_t + cq_x - \kappa q_{xx} = 0,
 \end{equation}
-with the terms labelled either \texttt{time\_derivative},
-\texttt{transport} or \texttt{diffusion}. The timestepping loop then
-applies a step of forward Euler to the transport term and backwards
-Euler to the diffusive term, i.e. the time discretisation is
-
+where $q$ is a scalar field, $c$ is the constant transporting velocity
+and $\kappa$ is the constant diffusivity. The time discretisation
+applies an explicit step of forward Euler to the transport term and
+an implicit step of backward Euler to the diffusion term:
 \begin{align}
-  q^* &= q^n - \Delta t (\MM{c}\cdot\nabla) q^n, \\
-  q^{n+1} &= q^* + \Delta t \kappa \nabla^2 q^{n+1}.
+  q^* &= q^n - c \Delta t q_x^n, \label{eq:explicit-advdiff} \\
+  q^{n+1} - \kappa \Delta t q_{xx}^{n+1} &= q^*, \label{eq:implicit-advdiff}
 \end{align}
+where $q^n$ is the value of $q$ at time step $n$, $q^*$ is an
+intermediate value for $q$ and $\Delta t$ is the timestep.
+
+We illustrate the use of FML for this example in three steps: 1)
+define and label the residual; 2) build the explicit and implicit
+solvers; 3) run the timestepping loop. Since the intention of this
+example is to demonstrate FML rather than the compatible finite
+element discretisation, we use piecewise quadratic continuous Lagrange
+polynomials, $P_2$, for the finite element discretisation as this
+greatly simplifies the forms. The finite element discretisation of
+equation \ref{eq:1dadvdiff} is then
+\begin{equation}\label{eq:weak-advdiff}
+  \int_\Omega vq \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0 \quad \forall v \in P_2,
+\end{equation}
+where $v\in P_2$ is the test function and the diffusion term has been
+integrated by parts.
+
+
+
+%\begin{align}\label{eq:weak-advdiff}
+%  \int_\Omega vq^* \diff x &= \int_\Omega vq^n \diff x - \Delta t c \int_\Omega v q_x^n \diff x, &\quad \forall v \in P^2, \\
+%  \int_\Omega vq^{n+1} \diff x  + \Delta t \kappa \int_\Omega v_x q_x^{n+1} \diff x &= \int_\Omega vq^* \diff x, &\quad \forall v \in P^2,
+%\end{align}
+%where $v$ is the test function and the diffusion term has been
+%integrated by parts.
+
+Listing \ref{lst:define-residual} presents the code to define this
+spatial discretisation of the residual with the $P_2$ function space
+denoted by \texttt{V}. Here we omit the code that sets up the mesh,
+function spaces and parameters $c$ and $\kappa$, although this can be
+found in the supplementary materials. The first two lines define the
+test function \texttt{v} and function \texttt{q}, corresponding to $v$
+and $q$ in equation \ref{eq:weak-advdiff}. The next four lines define
+the residual, i.e. the left hand side of equation
+\ref{eq:weak-advdiff}, using the FML labels \texttt{time\_derivative},
+\texttt{transport} and \texttt{diffusion} to tag the corresponding
+terms. The final line labels the function \texttt{q} as the subject of
+this residual. Note that the labels used for tagging just take the UFL
+form as an argument and their value is simply the default, \texttt{True}, in
+contrast to the \texttt{subject} label that has the value \texttt{q}.
+
+\lstinputlisting[caption=blah, label={lst:define-residual}, language=python, firstline=24, lastline=31]{code/advection_diffusion_splitting_example.py}
+
+To define the solvers for the explicit and implicit steps, we make use
+of the predefined mappings \texttt{drop} and \texttt{keep} 
+
+\lstinputlisting[caption=blah, label={lst:define-explicit}, language=python, firstline=38, lastline=53]{code/advection_diffusion_splitting_example.py}
+
+\lstinputlisting[caption=blah, label={lst:define-implicit}, language=python, firstline=56, lastline=70]{code/advection_diffusion_splitting_example.py}
+
+\lstinputlisting[caption=blah, label={lst:timeloop}, language=python, firstline=56, lastline=70]{code/advection_diffusion_splitting_example.py}
 
 
 
@@ -514,7 +616,7 @@ To include:
 \item 3D moist bubble with rain (Tom/Alex)
 \item spherical gravity wave, Boussinesq (Jemma)
 \item spherical baroclinic wave, Euler - whatever people usually plot
-  (horizontal slice pressure contours, temperature shadng) (Dan)
+  (horizontal slice pressure contours, temperature shading) (Dan)
 \item Held Suarez??
 \end{itemize}
 
@@ -527,11 +629,30 @@ is the `physics').
 The standard suite of shallow water test cases originally proposed in
 \citet{williamson1992standard} provides a common starting point for
 testing new discretisations. This test suite is usually augmented by
-the unstable barotropic jet described in \citet{galewsky2004initial}
+the unstable barotropic jet described in
+\citet{galewsky2004initial}. Here we present convergence results for a
+variety of timestepping schemes applied to the steady state
+geostrophic balance flow (test case 2 from
+\citet{williamson1992standard}) and a demonstration of two different
+grids and HDiv element families for shallow water flow over a mountain
+(test case 5 from \citet{williamson1992standard}) and the unstable
+barotropic jet \citep{galewsky2004initial}.
 
+\subsubsection{Convergence results}
 
+\subsubsection{Grids and HDiv elements}
 
+\subsection{Compressible Boussinesq equations}
 
+\subsection{Compressible Euler equations}
+
+\subsubsection{Dense bubble in a vertical slice}
+
+\subsubsection{3D moist rising bubble}
+
+\subsubsection{Baroclinic wave on the sphere}
+
+\subsubsection{Held Suarez}
 
 \section{Summary}
 \label{sec: summary}
