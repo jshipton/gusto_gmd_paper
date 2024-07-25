@@ -490,11 +490,10 @@ and reproducibility (**elaborate). This functionality is enabled
 through the form manipulation language (FML) which is used to
 associate a label to each term in the residual form defined in the
 equation class. The timestepping methods are then able to reason about
-which manipulations to apply to which forms by applying filters. Here
-we will describe the objects required to define labels and filters
-before illustrating this with a simple example(s?).
-
-\subsection{Form Manipulation Language Objects}
+which manipulations to apply to which forms by applying filters that
+check for the presence of a label and, optionally, its value. Here we
+will describe the objects required to define labels and filters before
+illustrating this with a simple example(s?).
 
 The finite element discretisation of each term in an equation is
 represented in Firedrake by a \texttt{ufl.Form} object. FML defines a
@@ -502,14 +501,13 @@ represented in Firedrake by a \texttt{ufl.Form} object. FML defines a
 finite element discretisation of the term and a dictionary of
 key-value pairs corresponding to the FML \texttt{Label} objects that
 apply to this term. An FML \texttt{Label} object has a name and an
-optional value. When called on a \texttt{ufl.Form} object, the
-\texttt{Label} ** Labels can also be used to tag parts of the
+optional value, defaulting to \texttt{True} which indicates the
+presence of the label. Labels can also be used to tag parts of the
 form. For example, the \texttt{subject} label is used to tag the
 \texttt{Function} in the \texttt{ufl.Form} that represents the
 prognostic variable. These operations are composable, so more than one
-label can be attached to a term.
-
-The end result is a \texttt{LabelledForm} object that holds a list of
+label can be attached to a term. The end result of labelling the terms
+in the residual is a \texttt{LabelledForm} object that holds a list of
 terms, pairing individual \texttt{ufl.Form} objects with an FML
 \texttt{label}. Labelled forms can be added together, multiplied by
 floats and have additional terms added. More complex manipulations are
