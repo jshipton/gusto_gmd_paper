@@ -215,10 +215,10 @@ structure described in the next section and motivate the use of Form
 Manipulation Language (FML) that underlies the flexibility of Gusto, a
 detailed example of which will be given in section \ref{sec: FML}. The
 convention in Gusto is to write the equations in residual form,
-meaning that all the terms appear on the left hand side. We will
-follow this convention below in contrast to many papers which present
-the equations with the pressure gradient term and any forcing terms on
-the right hand side.
+meaning that all the terms appear on the left side. We will follow
+this convention below in contrast to many papers which present the
+equations with the pressure gradient term and any forcing terms on the
+right side.
 
 \subsection{Shallow Water Equations}
 The shallow water equations are commonly used for testing numerical
@@ -501,25 +501,25 @@ represented in Firedrake by a \texttt{ufl.Form} object. FML defines a
 finite element discretisation of the term and a dictionary of
 key-value pairs corresponding to the FML \texttt{Label} objects that
 apply to this term. An FML \texttt{Label} object has a name and an
-optional value, defaulting to \texttt{True} which indicates the
-presence of the label. Labels can also be used to tag parts of the
-form. For example, the \texttt{subject} label is used to tag the
+optional value, defaulting to \texttt{True} to indicate the presence
+of the label. Labels can also be used to tag parts of the form. For
+example, the \texttt{subject} label is used to tag the
 \texttt{Function} in the \texttt{ufl.Form} that represents the
 prognostic variable. These operations are composable, so more than one
 label can be attached to a term. The end result of labelling the terms
 in the residual is a \texttt{LabelledForm} object that holds a list of
-terms, pairing individual \texttt{ufl.Form} objects with an FML
-\texttt{label}. Labelled forms can be added together, multiplied by
-floats and have additional terms added. More complex manipulations are
-enabled by the \texttt{label\_map} method that provides a way of
-filtering the terms in the form based on their labels, applying
-different mappings to terms that pass or fail the conditions defined
-in the filter. A common operation might be to filter for terms that
-have a certain label, such as \texttt{transport}, drop terms that do
-not have this label and multiply those that do by the timestep. We
-shall demonstrate this in the following example.
+terms, pairing individual \texttt{ufl.Form} objects with FML
+labels. Labelled forms can be added together, multiplied by floats and
+have additional terms added. More complex manipulations are enabled by
+the \texttt{label\_map} method that provides a way of filtering the
+terms in the form based on their labels, applying different mappings
+to terms that pass or fail the conditions defined in the filter. A
+common operation might be to filter for terms that have a certain
+label, such as \texttt{transport}, drop terms that do not have this
+label and multiply those that do by the timestep. We shall demonstrate
+this in the following example.
 
-**describe methods has_label and get
+\JScomment{describe methods has label and get?}
 
 \subsection{Example}
 
@@ -540,13 +540,14 @@ where $q^n$ is the value of $q$ at time step $n$, $q^*$ is an
 intermediate value for $q$ and $\Delta t$ is the timestep.
 
 We illustrate the use of FML for this example in three steps: 1)
-define and label the weak form of the residual; 2) build the solvers
-for the explicit and implicit systems; 3) run the timestepping
-loop. Since the intention of this example is to demonstrate FML rather
-than the compatible finite element discretisation, we use space of piecewise
-quadratic continuous Lagrange polynomials, denoted by $P_2$, for the finite
-element discretisation as this greatly simplifies the forms. The
-finite element discretisation of equation \ref{eq:1dadvdiff} is then
+define and label the weak form of the residual; 2) build solvers for
+the explicit and implicit systems; 3) run the timestepping loop. Since
+the intention of this example is to demonstrate FML rather than the
+compatible finite element discretisation, we use space of piecewise
+quadratic continuous Lagrange polynomials, denoted by $P_2$, for the
+finite element discretisation as this greatly simplifies the
+forms. The finite element discretisation of equation
+\ref{eq:1dadvdiff} is then
 \begin{equation}\label{eq:weak-advdiff}
   \int_\Omega vq_t \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0, \quad \forall v \in P_2,
 \end{equation}
@@ -560,14 +561,14 @@ function spaces and parameters $c$ and $\kappa$, although this can be
 found in the supplementary materials. The first two lines define the
 test function \texttt{v} and function \texttt{q}, corresponding to $v$
 and $q$ in equation \ref{eq:weak-advdiff}. The next four lines define
-the residual, i.e. the left hand side of equation
-\ref{eq:weak-advdiff}, using the FML labels \texttt{time\_derivative},
-\texttt{transport} and \texttt{diffusion} to tag the corresponding
-terms. The final line labels the function \texttt{q} as the subject of
-this residual, i.e. the prognostic field. Note that the labels used
-for tagging just take the UFL form as their argument and their value is
-simply the default, \texttt{True}, in contrast to the \texttt{subject}
-label that has the value \texttt{q}.
+the residual, i.e. the left side of equation \ref{eq:weak-advdiff},
+using the FML labels \texttt{time\_derivative}, \texttt{transport} and
+\texttt{diffusion} to tag the corresponding terms. The final line
+labels the function \texttt{q} as the subject of this residual,
+i.e. the prognostic field. Note that the labels used for tagging just
+take the UFL form as their argument and their value is simply the
+default, \texttt{True}, in contrast to the \texttt{subject} label that
+has the value \texttt{q}.
 
 \lstinputlisting[caption=blah, label={lst:define-residual}, language=python, firstline=24, lastline=31]{code/advection_diffusion_splitting_example.py}
 
@@ -583,25 +584,54 @@ terms in the residual making use of the predefined mappings
 \texttt{drop} and \texttt{keep} to either remove or retain the term
 based on the value of the filter. This code is given in listings
 \ref{lst:define-explicit} and \ref{lst:define-implicit}. In listing
-\ref{lst:define-explicit} we create the left and right hand sides of
-equation \ref{eq:explicit-advdiff}. The left hand side should only
-contain the time derivative term so the filter checks if each term has
-the label \texttt{time\_derivative}, keeping the one that does and
-dropping all others. To make this the left hand side of a
+\ref{lst:define-explicit} we create the left and right sides of
+equation \ref{eq:explicit-advdiff}. The left side should only contain
+the time derivative term so the filter checks if each term has the
+label \texttt{time\_derivative}, keeping the one that does and
+dropping all others. To make this the left side of a
 \texttt{LinearVariationalProblem}, we replace the subject with a trial
 function using the predefined \texttt{replace\_subject} function, a
 lightweight wrapper around the UFL replace method which extracts the
 subject of the term and replaces it with the new expression, in this
-case simply a trial function \texttt{q\_trial}. \JScomment{Is the
+case simply a trial function \texttt{q\_trial}. The right side of the
+explicit solver has two forms, one coming from the discretisation of
+the time derivative and the other from the transport term. Both are
+evaluated using the values of $q$ at time step $n$. We build this by
+first dropping the diffusion term (line 6) and then multiplying the
+terms that do not have the \texttt{time\_derivative} label by $-\Delta
+t$ (line 8), where the minus sign is required to move the term from
+the left side to the right side. The final step is to replace the
+subject with the function \texttt{qn} that holds the values of $q$ at
+time step $n$. We can then extract the UFL forms from
+\texttt{lhs\_explicit} and \texttt{lhs\_implicit} to create a
+\texttt{LinearVariationalProblem} and corresponding
+\texttt{LinearVariationalSolver} that, when solved, will put the
+result into the function \texttt{qstar}.
+
+\JScomment{Is the
   labelling for the rhs the clearest? maybe we should keep the terms
   that we want rather than assuming that dropping diffusion gives the
   right thing?}
 
 \lstinputlisting[caption=blah, label={lst:define-explicit}, language=python, firstline=38, lastline=53]{code/advection_diffusion_splitting_example.py}
 
+The implicit solver is defined in a similar way (see listing
+\ref{lst:define-implicit}). To create the left side of equation
+\ref{eq:implicit-advdiff} we begin with the original residual, drop
+the transport term (line 1), multiply all remaining terms that are not
+the time derivative by $\Delta t$ (line 3) and replace the subject
+with a trail function (line 5). The right side only contains the form
+coming from the discretisation of the time derivative (line 7),
+evaluated using the result of the explicit solve, \texttt{qstar} (line
+9).
+
 \lstinputlisting[caption=blah, label={lst:define-implicit}, language=python, firstline=56, lastline=70]{code/advection_diffusion_splitting_example.py}
 
-\lstinputlisting[caption=blah, label={lst:timeloop}, language=python, firstline=56, lastline=70]{code/advection_diffusion_splitting_example.py}
+The final part of the code is the time loop which calls the solve
+method of the explicit and then the impicit solvers defined above, see
+listing \ref{lst:timeloop}
+
+\lstinputlisting[caption=blah, label={lst:timeloop}, language=python, firstline=73, lastline=79]{code/advection_diffusion_splitting_example.py}
 
 
 
