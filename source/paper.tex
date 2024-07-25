@@ -485,8 +485,10 @@ research question (**ref).
 \label{sec: FML}
 The discussion of the time discretisation so far has been general i.e.
 not specific to any particular equation set. This is also true of the
-implementation of the timestepping schemes. This enables flexibility
-and reproducibility (**elaborate). This functionality is enabled
+implementation of the timestepping schemes, resulting in modular code
+where the equations are defined separately from the timestepping
+scheme enabling flexibility in combining different equations with
+different timestepping schemes. This powerful functionality is enabled
 through the form manipulation language (FML) which is used to
 associate a label to each term in the residual form defined in the
 equation class. The timestepping methods are then able to reason about
@@ -497,6 +499,10 @@ illustrating this with a simple example(s?).
 
 The finite element discretisation of each term in an equation is
 represented in Firedrake by a \texttt{ufl.Form} object. FML defines a
+Label object which tags a ufl.Form to become a Term, with the
+intention that the Term represents a term in the equation.
+
+FML defines a
 \texttt{Term} object that comprises the \texttt{ufl.Form} defining the
 finite element discretisation of the term and a dictionary of
 key-value pairs corresponding to the FML \texttt{Label} objects that
@@ -518,8 +524,6 @@ common operation might be to filter for terms that have a certain
 label, such as \texttt{transport}, drop terms that do not have this
 label and multiply those that do by the timestep. We shall demonstrate
 this in the following example.
-
-\JScomment{describe methods has label and get?}
 
 \subsection{Example}
 
@@ -570,7 +574,7 @@ take the UFL form as their argument and their value is simply the
 default, \texttt{True}, in contrast to the \texttt{subject} label that
 has the value \texttt{q}.
 
-\lstinputlisting[caption=blah, label={lst:define-residual}, language=python, firstline=24, lastline=31]{code/advection_diffusion_splitting_example.py}
+\lstinputlisting[caption={This code defines and labels the residual corresponding to equation \ref{eq:weak-advdiff}}, label={lst:define-residual}, language=python, firstline=24, lastline=31]{code/advection_diffusion_splitting_example.py}
 
 To define the solvers for the explicit and implicit steps we need to create UFL forms for the left and right sides, given by the following equations
 \begin{align}
@@ -613,7 +617,7 @@ result into the function \texttt{qstar}.
   that we want rather than assuming that dropping diffusion gives the
   right thing?}
 
-\lstinputlisting[caption=blah, label={lst:define-explicit}, language=python, firstline=38, lastline=53]{code/advection_diffusion_splitting_example.py}
+\lstinputlisting[caption={This code defines the solver for the explicit step of the timestepping method i.e. equation \ref{eq:explicit-advdiff}. \texttt{qn} and \texttt{qstar} are Firedrake \texttt{Functions} with \texttt{qn} holding the values of $q$ at time step $n$ and \texttt{qstar} holding the values after the explicit solve.}, label={lst:define-explicit}, language=python, firstline=40, lastline=55]{code/advection_diffusion_splitting_example.py}
 
 The implicit solver is defined in a similar way (see listing
 \ref{lst:define-implicit}). To create the left side of equation
@@ -625,11 +629,14 @@ coming from the discretisation of the time derivative (line 7),
 evaluated using the result of the explicit solve, \texttt{qstar} (line
 9).
 
-\lstinputlisting[caption=blah, label={lst:define-implicit}, language=python, firstline=56, lastline=70]{code/advection_diffusion_splitting_example.py}
+\lstinputlisting[caption={This code defines the solver for the implicit step of the timestepping method i.e. equation \ref{eq:implicit-advdiff}. \texttt{qstar} and \texttt{qnp1} are Firedrake \texttt{Functions} with \texttt{qstar} holding the values after the explicit solve and \texttt{qnp1} holding the values of $q$ at after the implicit solve.}, label={lst:define-implicit}, language=python, firstline=57, lastline=71]{code/advection_diffusion_splitting_example.py}
 
 The final part of the code is the time loop which calls the solve
-method of the explicit and then the impicit solvers defined above, see
-listing \ref{lst:timeloop}
+method of first the explicit solver and then the implicit solver, see
+listing \ref{lst:timeloop}. In practice, the code in listings
+\ref{lst:define-explicit}-\ref{lst:define-implicit} would be in a
+function that could be applied to any residual labeled with the
+appropriate labels.
 
 \lstinputlisting[caption=blah, label={lst:timeloop}, language=python, firstline=73, lastline=79]{code/advection_diffusion_splitting_example.py}
 
