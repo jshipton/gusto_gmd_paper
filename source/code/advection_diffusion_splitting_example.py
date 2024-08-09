@@ -32,6 +32,8 @@ residual = subject(residual, q)
 
 # Set up solvers
 q_trial = TrialFunction(V)
+qstar = Function(V)
+qnp1 = Function(V)
 dt = 0.01
 
 # Set up solver for explicit transport step
@@ -46,7 +48,6 @@ rhs_explicit = rhs_explicit.label_map(lambda t: t.has_label(time_derivative),
                                       map_if_false=lambda t: -dt*t)
 rhs_explicit = rhs_explicit.label_map(all_terms,
                                       map_if_true=replace_subject(qn))
-qstar = Function(V)
 prob_explicit = LinearVariationalProblem(lhs_explicit.form,
                                          rhs_explicit.form,
                                          qstar)
@@ -63,7 +64,6 @@ rhs_implicit = residual.label_map(lambda t: t.has_label(time_derivative),
                                       map_if_false=drop)
 rhs_implicit = rhs_implicit.label_map(all_terms,
                                       map_if_true=replace_subject(qstar))
-qnp1 = Function(V)
 prob_implicit = LinearVariationalProblem(lhs_implicit.form,
                                          rhs_implicit.form,
                                          qnp1)

@@ -173,36 +173,43 @@ capabilities and outline our vision for future development.
 \item links to LFRic - we mention the Gung Ho project on the Gusto website so should describe that link here
 \end{itemize}
 
-The finite element method represents fields on a mesh made of
-non-overlapping, conforming cells, or elements. Within each element,
-the field is represented as a sum of coefficients multiplied by
-polynomial basis functions. The finite element space is specified by
-the degree of the polynomial basis functions and the continuity of
-these functions between the elements. The partial differential
-equations used in weather and climate modelling have multiple
-prognostic fields and it is not necessary, or indeed desirable, to use
-the same finite element function space for each field. Using different
-finite element function spaces for each field gives what is known as a
-mixed finite element discretisation. If these different finite element
-function spaces are chosen so that discrete versions of the vector
-calculus identities ** hold then the discretisation is called
-`mimetic' or `compatible'.
+The finite element method represents fields (e.g. velocity, pressure,
+density or temperature) on a mesh made of non-overlapping, conforming
+cells, or elements. Within each element, the field is represented as a
+sum of coefficients multiplied by polynomial basis functions. The
+finite element space is specified by the degree of the polynomial
+basis functions and the continuity of these functions between the
+elements. The partial differential equations used in weather and
+climate modelling have multiple prognostic fields and it is not
+necessary, or indeed desirable, to use the same finite element
+function space for each field. Using different finite element function
+spaces for each field gives what is known as a mixed finite element
+discretisation. If these different finite element function spaces are
+chosen so that discrete versions of vector calculus identities hold
+then the discretisation is called `mimetic' or `compatible'.
+
+
 
 In this article we will describe the current capabilities of Gusto and
 the design features that enable our flexible implementation whereby
 different spatial and temporal discretisations can be applied to a
 range of different equation sets relevant for weather and climate
 modelling. In section \ref{sec: governing} we will outline three
-different equation sets, along with their finite element
-discretisations. Then in section \ref{sec: design} we will present the
-code structure of Gusto followed by a detailed example (section
-\ref{sec: FML}) of the Form Manipulation Language (FML) that
-facilitates symbolic manipulation of the finite element forms within
-our timestepping code. Section \ref{sec: results} contains a selection
-of numerical results that showcases the range of discretisations
+different equations commonly used for modelling geophysical fluids in
+order to demonstrate the similaries between the equations and justify
+the use of a unified codebase. The advantages of this unified approach
+become even clearer in section \ref{sec: FEM} where we present the
+compatible finite element discretisation of the different types of
+terms (e.g. pressure gradient, transport) seen in section \ref{sec:
+  governing}. In section \ref{sec: design} we describe the code
+structure of Gusto followed by a detailed example (section \ref{sec:
+  FML}) of the Form Manipulation Language (FML) that facilitates
+symbolic manipulation of the finite element forms within our
+timestepping code. Section \ref{sec: results} contains a selection of
+numerical results that showcases the range of discretisations
 available within Gusto. **mention here new functionality facilitated
-by the flexibility of Gusto? We summarise our current status and future
-directions in section \ref{sec: summary}.
+by the flexibility of Gusto? We summarise our current status and
+future directions in section \ref{sec: summary}.
 
 \section{Governing Equations}
 \label{sec: governing}
@@ -253,9 +260,8 @@ because they incorporate compressibility effects without the
 complexity of discretising the nonlinear pressure gradient terms that
 we shall see in the compressible Euler equations. We write these
 equations in terms of the prognostic variables $\MM{u}$, $b$ and $p$
-where $\MM{u}$ is a three dimensional velocity field, $b$ is the fluid
-buoyancy and $p$ is pressure. In terms of these variables, the
-equations are:
+where $\MM{u}$ is the velocity field, $b$ is the fluid buoyancy and
+$p$ is pressure. In terms of these variables, the equations are:
 
 \begin{align}
   \pp{\MM{u}}{t} + 
@@ -266,10 +272,16 @@ equations are:
 \end{align}
 where $\MM{\Omega}$ is the rotation vector of the domain,
 $\hat{\MM{k}}$ is the unit vector pointing upwards and $c$ is the
-acoustic wave speed. The velocity $\MM{u}$ can be two or three
-dimensional, depending on whether the domain is a vertical slice
-described by $(x, z)$ coordinates, of a three dimensional domain
-described by $(x, y, z)$ coordinates.
+acoustic wave speed. The equations have been written in
+three-dimensional form but they can also be solved in a
+two-dimensional vertical slice domain described by $(x, z)$
+coordinates. In this case the velocity $\MM{u}$ can either be
+two-dimensional as well (if there is no Coriolis force), or fully
+three-dimensional but with each cartensian component only varying in
+the $x-z$ plane. In the latter case this is implemented using a
+three-dimensional computational domain that is only one element wide
+in the $y$-direction and with periodic boundary conditions also in
+that direction.
 
 \subsection{Compressible Euler Equations}
 The dynamical core at the heart of any weather or climate model solves
@@ -289,11 +301,20 @@ state. In terms of these variables, the equations are:
   \pp{\theta}{t} + (\MM{u}\cdot\nabla)\theta & = 0, \\
   \Pi^{(1-\kappa)/\kappa} & = \frac{R}{p_0}\rho\theta, & 
 \end{align}
-where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure,
-typically taken to be *, $R$ is ** and $\kappa$ is **. The velocity
-$\MM{u}$ can be two or three dimensional, depending on whether the
-domain is a vertical slice described by $(x, z)$ coordinates, of a
-three dimensional domain described by $(x, y, z)$ coordinates.
+where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure, $R$
+is the gas constant, $c_p$ is the specific heat at constant pressure
+and $\kappa=R/c_p$. The equations have been written in
+three-dimensional form but they can also be solved in a
+two-dimensional vertical slice domain described by $(x, z)$
+coordinates. In this case the velocity $\MM{u}$ can either be two
+dimensional as well (if there is no Coriolis force), or fully three
+dimensional but with each cartensian component only varying in the
+$x-z$ plane. In the latter case this is implemented using a three
+dimensional computational domain that is only one element wide in the
+$y$-direction and with periodic boundary conditions also in that
+direction. \JScomment{I know this repeats what is said above but I
+  like that each section is self-contained - I hope that is ok but
+  also happy to change it!}
 
 In all of the equation sets described here, the nonlinear velocity
 advection term $(\MM{u}\cdot\nabla)\MM{u}$ can be replaced by the sum
@@ -318,8 +339,9 @@ and is derived from the pressure gradient term in the full equations
 either an advective or continuity form of the transport
 equation. These similarities remain when we formulate the compatible
 finite element discretisations, as we shall see below, and importantly
-this means that the discretisation of these terms can be written in a
-general way that means it can be applied to any of the equation sets.
+this means that the discretisation of these terms can be written and
+implemented in software so that it can be applied to any of the
+equation sets.
 
 The finite element discretisation is formed by choosing appropriate
 function spaces for the prognostic variables, multiplying by test
@@ -332,21 +354,23 @@ In line with the theory outlined in section \ref{}, we always choose
 the velocity $\MM{u} \in \mathbb{V}_u$ with $\mathbb{V}_u \subset
 H(\text{div})$. The field whose gradient appears in the `pressure'
 gradient term is chosen to be in the space $\mathbb{V}_p$ with
-$\mathbb{V}_p \subset L_2$. The compressible Boussinesq and
-compressible Euler equations have a third prognostic variable, either
-buoyancy or potential temperature, which is chosen to be in the space
-$\mathbb{V}_\theta$ which has degrees of freedom that are collocated
-with those of the vertical velocity, mimicking the Charney-Phillips
-staggering as discussed in **. These choices are governed by the
-properties required of discretisation of the linearised equation sets
-(as discussed in section ** and other refs). To solve the nonlinear
-equation sets we need to introduce stable and accurate discretisations
-of the transport terms and the nonlinear pressure gradient term in the
-compressible Euler equation set. In addition, some test cases require
-the addition of viscous and diffusive terms to generate converged
-solutions \ref{}. In the following subsections we illustrate a
-non-exhaustive (**probably!) selection of the options available in
-Gusto.
+$\mathbb{V}_p \subset L_2$, or, in the case of the more complex
+nonlinear pressure gradient term for the compressible Euler equations,
+it is a function of a variable in this space. The compressible
+Boussinesq and compressible Euler equations have a third prognostic
+variable, either buoyancy or potential temperature, which is chosen to
+be in the space $\mathbb{V}_\theta$ which has degrees of freedom that
+are collocated with those of the vertical velocity, mimicking the
+Charney-Phillips staggering as discussed in **. These choices are
+governed by the properties required of discretisation of the
+linearised equation sets (as discussed in section ** and other
+refs). To solve the nonlinear equation sets we need to introduce
+stable and accurate discretisations of the transport terms and the
+nonlinear pressure gradient term in the compressible Euler equation
+set. In addition, some test cases require viscous and diffusive terms
+to generate converged solutions \ref{}. In the following subsections
+we illustrate a non-exhaustive (**probably!) selection of the options
+available in Gusto.
 
 \subsection{Pressure gradient term}
 The pressure gradient term is discretised in a similar way for each
@@ -359,7 +383,7 @@ integrated by parts. In the linear case, using the notation for the
 compressible Boussinesq equations, the weak form is
 
 \begin{equation}
-\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x,
+\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x, \quad \forall \MM{w} \in \mathbb{V}_u,
 \end{equation}
 where $\Omega$ denotes the domain and there are no surface terms from
 the integration by parts because these vanish on interior element
@@ -367,12 +391,13 @@ boundaries since the normal component of $\MM{w}$ is continuous across
 element facets and on exterior boundaries we set no normal flow
 boundary conditions. However, the pressure gradient term in the
 compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
-this introduces an additional complication. Integrating by parts is
+this introduces an additional complication. Integration by parts is
 still required since $\Pi$ is evaluated as a function of the density
-$\rho \in L_2$ and so is discontinuous, but this means that we now
-have a differential operator applied to $\theta \in \mathbb{V}_\theta$
-which is discontinuous in the vertical. Following \ref{} we integrate
-by parts in each element $e$, giving
+$\rho \in \mathbb{V}_\rho$ and $\theta \in \mathbb{V}_\theta$ so is
+discontinuous, but this means that we now have a differential operator
+applied to $\theta \in \mathbb{V}_\theta$ which is discontinuous in
+the vertical. Following \ref{} we integrate by parts in each element
+$e$, giving
 
 \begin{equation}
   c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S,
@@ -498,32 +523,33 @@ will describe the objects required to define labels and filters before
 illustrating this with a simple example(s?).
 
 The finite element discretisation of each term in an equation is
-represented in Firedrake by a \texttt{ufl.Form} object. FML defines a
-Label object which tags a ufl.Form to become a Term, with the
-intention that the Term represents a term in the equation.
+represented in Firedrake by a UFL form object. FML defines a
+\texttt{Label} object which is used to tag a UFL form to create a
+\texttt{Term}, with the intention that the \texttt{Term} represents a
+term in the residual.
 
-FML defines a
-\texttt{Term} object that comprises the \texttt{ufl.Form} defining the
-finite element discretisation of the term and a dictionary of
-key-value pairs corresponding to the FML \texttt{Label} objects that
-apply to this term. An FML \texttt{Label} object has a name and an
-optional value, defaulting to \texttt{True} to indicate the presence
-of the label. Labels can also be used to tag parts of the form. For
-example, the \texttt{subject} label is used to tag the
-\texttt{Function} in the \texttt{ufl.Form} that represents the
-prognostic variable. These operations are composable, so more than one
-label can be attached to a term. The end result of labelling the terms
-in the residual is a \texttt{LabelledForm} object that holds a list of
-terms, pairing individual \texttt{ufl.Form} objects with FML
-labels. Labelled forms can be added together, multiplied by floats and
-have additional terms added. More complex manipulations are enabled by
-the \texttt{label\_map} method that provides a way of filtering the
-terms in the form based on their labels, applying different mappings
-to terms that pass or fail the conditions defined in the filter. A
-common operation might be to filter for terms that have a certain
-label, such as \texttt{transport}, drop terms that do not have this
-label and multiply those that do by the timestep. We shall demonstrate
-this in the following example.
+FML defines a \texttt{Term} object that comprises the
+\texttt{ufl.Form} defining the finite element discretisation of the
+term and a dictionary of key-value pairs corresponding to the FML
+\texttt{Label} objects that apply to this term. An FML \texttt{Label}
+object has a name and an optional value, defaulting to \texttt{True}
+to indicate the presence of the label. Labels can also be used to tag
+parts of the form. For example, the \texttt{subject} label is used to
+tag the \texttt{Function} in the \texttt{ufl.Form} that represents the
+prognostic variable, or `subject' of the equation. These operations
+are composable, so more than one label can be attached to a term. The
+end result of labelling the terms in the residual is a
+\texttt{LabelledForm} object that holds a list of terms, pairing
+individual \texttt{ufl.Form} objects with FML labels. Labelled forms
+can be added together, multiplied by floats and have additional terms
+added. More complex manipulations are enabled by the
+\texttt{label\_map} method that provides a way of filtering the terms
+in the form based on their labels, applying different mappings to
+terms that pass or fail the conditions defined in the filter. A common
+operation might be to filter for terms that have a certain label, such
+as \texttt{transport}, drop terms that do not have this label and
+multiply those that do by the timestep. We shall demonstrate this in
+the following example.
 
 \subsection{Example}
 
@@ -534,8 +560,9 @@ to the 1D advection diffusion equation
 \end{equation}
 where $q$ is a scalar field, $c$ is the constant transporting velocity
 and $\kappa$ is the constant diffusivity. The time discretisation
-applies an explicit step of forward Euler to the transport term and
-an implicit step of backward Euler to the diffusion term:
+applies an explicit timestep of forward Euler to the transport term
+$cq_x$ and an implicit timestep of backward Euler to the diffusion
+term $\kappa q_{xx}$:
 \begin{align}
   q^* &= q^n - c \Delta t q_x^n, \label{eq:explicit-advdiff} \\
   q^{n+1} - \kappa \Delta t q_{xx}^{n+1} &= q^*, \label{eq:implicit-advdiff}
@@ -544,10 +571,10 @@ where $q^n$ is the value of $q$ at time step $n$, $q^*$ is an
 intermediate value for $q$ and $\Delta t$ is the timestep.
 
 We illustrate the use of FML for this example in three steps: 1)
-define and label the weak form of the residual; 2) build solvers for
-the explicit and implicit systems; 3) run the timestepping loop. Since
+define and label the weak form of the residual, 2) build solvers for
+the explicit and implicit systems, 3) run the timestepping loop. Since
 the intention of this example is to demonstrate FML rather than the
-compatible finite element discretisation, we use space of piecewise
+compatible finite element discretisation, we use the space of piecewise
 quadratic continuous Lagrange polynomials, denoted by $P_2$, for the
 finite element discretisation as this greatly simplifies the
 forms. The finite element discretisation of equation
@@ -617,14 +644,14 @@ result into the function \texttt{qstar}.
   that we want rather than assuming that dropping diffusion gives the
   right thing?}
 
-\lstinputlisting[caption={This code defines the solver for the explicit step of the timestepping method i.e. equation \ref{eq:explicit-advdiff}. \texttt{qn} and \texttt{qstar} are Firedrake \texttt{Functions} with \texttt{qn} holding the values of $q$ at time step $n$ and \texttt{qstar} holding the values after the explicit solve.}, label={lst:define-explicit}, language=python, firstline=40, lastline=55]{code/advection_diffusion_splitting_example.py}
+\lstinputlisting[caption={This code defines the solver for the explicit step of the timestepping method i.e. equation \ref{eq:explicit-advdiff}. \texttt{qn} and \texttt{qstar} are Firedrake \texttt{Functions} with \texttt{qn} holding the values of $q$ at time step $n$ and \texttt{qstar} holding the values of $q$ after the explicit solve.}, label={lst:define-explicit}, language=python, firstline=40, lastline=55]{code/advection_diffusion_splitting_example.py}
 
 The implicit solver is defined in a similar way (see listing
 \ref{lst:define-implicit}). To create the left side of equation
 \ref{eq:implicit-advdiff} we begin with the original residual, drop
 the transport term (line 1), multiply all remaining terms that are not
 the time derivative by $\Delta t$ (line 3) and replace the subject
-with a trail function (line 5). The right side only contains the form
+with a trial function (line 5). The right side only contains the form
 coming from the discretisation of the time derivative (line 7),
 evaluated using the result of the explicit solve, \texttt{qstar} (line
 9).
@@ -638,8 +665,26 @@ listing \ref{lst:timeloop}. In practice, the code in listings
 function that could be applied to any residual labeled with the
 appropriate labels.
 
-\lstinputlisting[caption=blah, label={lst:timeloop}, language=python, firstline=73, lastline=79]{code/advection_diffusion_splitting_example.py}
+\lstinputlisting[caption={This code is the timeloop implementing the scheme defined in equations \ref{eq:explicit-advdiff}-\ref{eq:implicit-advdiff} using the solvers defined in listings \ref{lst:define-explicit}-\ref{lst:define-implicit}.}, label={lst:timeloop}, language=python, firstline=73, lastline=79]{code/advection_diffusion_splitting_example.py}
 
+This simple example demonstrates the power of manipulating the terms
+in the equation based on the presence or absence of certain
+labels. The full strength of FML becomes even more apparant when we
+exploit information stored in the label value. We use this in two
+important situations in Gusto. The first situation is when we require
+a linearisation of the residual, for example when applying a Newton
+method to the full nonlinear equations \JScomment{should we clarify
+  that we mean a specific linearisation because Firedrake can do
+  Newton methods without FML?}, or to test a new algorithm or model
+setup on linear equations. The second situation is when we need to
+evaluate source terms that come from physics schemes. We can
+illustrate both situations with simple extensions to the above
+example.
+
+First consider the 1D viscous Burgers' equation
+\begin{equation}
+  u_t + uu_x + \nu u_{xx} = 0.
+\end{equation}
 
 
 \section{Results}
