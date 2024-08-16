@@ -184,11 +184,21 @@ climate modelling have multiple prognostic fields and it is not
 necessary, or indeed desirable, to use the same finite element
 function space for each field. Using different finite element function
 spaces for each field gives what is known as a mixed finite element
-discretisation. If these different finite element function spaces are
-chosen so that discrete versions of vector calculus identities hold
-then the discretisation is called `mimetic' or `compatible'.
+discretisation.
 
+If the different finite element function spaces are chosen so that
+discrete versions of vector calculus identities hold then the
+discretisation is called `mimetic' or `compatible'.
 
+* These methods are useful in a variety of applications
+* In the context of geophysical fluid dynamics they are useful because...
+* These properties rely on the underpinning structure of the de Rham complex
+* In 3D the function spaces have a tensor product structure
+* The function spaces are hard to construct especially on the sphere - piola transform
+
+* Gusto has grown out of code developed in (see above refs)
+* The idea is to bring together methods using compatible finite element discretisations in a well-tested and documented code base that can be extended and applied to different problems of interest to the community.
+* X did Y - quick history of the development of the methods, plus others that are not actually in Gusto at the moment.
 
 In this article we will describe the current capabilities of Gusto and
 the design features that enable our flexible implementation whereby
@@ -727,13 +737,15 @@ testing new discretisations. This test suite is usually augmented by
 the unstable barotropic jet described in
 \citet{galewsky2004initial}. Here we present convergence results for a
 variety of timestepping schemes applied to the steady state
-geostrophic balance flow (test case 2 from
+geostrophic balanced flow (test case 2 from
 \citet{williamson1992standard}) and a demonstration of two different
 grids and HDiv element families for shallow water flow over a mountain
 (test case 5 from \citet{williamson1992standard}) and the unstable
 barotropic jet \citep{galewsky2004initial}.
 
 \subsubsection{Convergence results}
+
+
 
 \subsubsection{Grids and HDiv elements}
 
