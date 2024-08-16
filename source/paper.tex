@@ -394,10 +394,10 @@ compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
 this introduces an additional complication. Integration by parts is
 still required since $\Pi$ is evaluated as a function of the density
 $\rho \in \mathbb{V}_\rho$ and $\theta \in \mathbb{V}_\theta$ so is
-discontinuous, but this means that we now have a differential operator
-applied to $\theta \in \mathbb{V}_\theta$ which is discontinuous in
-the vertical. Following \ref{} we integrate by parts in each element
-$e$, giving
+discontinuous between elements, but then integrating by parts
+transfers the differential operator to $\MM{w}\theta$ which is
+discontinuous in the horizontal. Following \ref{} we integrate by parts
+in each element $e$, giving
 
 \begin{equation}
   c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S,
@@ -414,7 +414,7 @@ where $\Gamma_v$ denotes the vertical element facets, across which
 $\theta$ is discontinuous. Here we have chosen, as in \citet{}, to take
 the average value of $\Pi$ across the facets, $\avg{\Pi} =
 (\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each side of the
-facet. The brackets $\jump{q} = q^+-q^-$ denote the jump in a value
+facet. The brackets $\jump{q} = q^+-q^-$ denote the jump in $q$
 across the facet and the integral over the horizontal facets vanishes
 since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous across
 these facets so the jump is zero.
@@ -512,8 +512,8 @@ The discussion of the time discretisation so far has been general i.e.
 not specific to any particular equation set. This is also true of the
 implementation of the timestepping schemes, resulting in modular code
 where the equations are defined separately from the timestepping
-scheme enabling flexibility in combining different equations with
-different timestepping schemes. This powerful functionality is enabled
+scheme enabling flexibility in applying different timestepping schemes
+to different equations. This powerful functionality is facilitated
 through the form manipulation language (FML) which is used to
 associate a label to each term in the residual form defined in the
 equation class. The timestepping methods are then able to reason about
