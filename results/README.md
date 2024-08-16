@@ -6,7 +6,7 @@ instructions
 [here](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage).
 
 To upload data to GitHub LFS for this paper, first install GitHub LFS
-folling the instructions above. Then move the data file to the
+following the instructions above. Then move the data file to the
 corresponding results directory for the test and add to LFS with the command:
 
 `git lfs track "results/$DIRNAME/$FILENAME"`.
