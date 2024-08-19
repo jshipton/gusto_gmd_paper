@@ -188,13 +188,47 @@ discretisation.
 
 If the different finite element function spaces are chosen so that
 discrete versions of vector calculus identities hold then the
-discretisation is called `mimetic' or `compatible'.
+discretisation is called `mimetic' or `compatible'. These methods are
+useful in a variety of applications due to their ability to capture
+the underlying geometric structure of the governing equations. In the
+context of geophysical fluid dynamics, these methods are useful
+because they represent geostrophic balance exactly which is crucial
+for reproducing accurate simulations of the large-scale flow. In
+addition to this, there is flexibility within the compatible finite
+element framework to choose function spaces that also give other
+advantages such as energy conservation, local mass conservation and
+discrete dispersion properties that lead to no spurious pressure
+modes.
 
-* These methods are useful in a variety of applications
-* In the context of geophysical fluid dynamics they are useful because...
-* These properties rely on the underpinning structure of the de Rham complex
+The compatible finite element spaces relevant for geophysical fluid
+dynamics are constructed from a discrete differential complex called
+the de Rham complex. This is a sequence of spaces with differential
+operators between them that map onto the kernal of the next operator
+in the sequence. This is often summarised in a commutation diagram as
+in figures \ref{fig:3D de Rham} and \ref{fig:2D de Rham}. In these
+diagrams the infinite dimensional spaces are along the top row and the
+$\pi_i$ denote projections into the corresponding finite dimensional
+subspace used in the compatible finite element discretisation. The
+differential operators are denoted by $\diff^k$ and these commute with
+the projections, meaning that $\diff^{k+1}\pi_k(\cdot) =
+\diff^{k+1}\pi_{k+1}(\cdot)$. This guarantees that, in 3D, $\nabla$
+maps onto the kernal of $\nabla\times$, ensuring
+$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernal
+of $\nabla\cdot$, ensuring that $\nabla\cdot\nabla\times(\cdot)=0$;
+i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$ maps
+onto the kernal of $\nabla\cdot$, ensuring that
+$\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to write this de
+Rham complex such that instead we have that $\nabla$ maps onto the
+kernal of $\nabla^\perp$, ensuring that
+$\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
+constructing discretisations for geophysical fluid dynamics since it
+enables schemes with local mass conservation \citep{}.
+
+
+
+
 * In 3D the function spaces have a tensor product structure
-* The function spaces are hard to construct especially on the sphere - piola transform
+* The function spaces are hard to construct especially on the sphere - piola transform, theta space
 
 * Gusto has grown out of code developed in (see above refs)
 * The idea is to bring together methods using compatible finite element discretisations in a well-tested and documented code base that can be extended and applied to different problems of interest to the community.
