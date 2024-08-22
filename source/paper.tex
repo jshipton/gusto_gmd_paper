@@ -224,7 +224,20 @@ $\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
 constructing discretisations for geophysical fluid dynamics since it
 enables schemes with local mass conservation \citep{}.
 
-
+Given that there are many promising avenues for research in the area
+of compatible finite element discretisations for geophysical fluid
+dynamics (**where to say what these are?), a flexible, extensible
+implementation of the methods is strongly desirable. This is
+especially required because, while it is feasible for someone to write
+a code implementing a specific finite element discretisation of a PDE,
+the code quickly becomes complicated and unsustainable when
+investigating different orders or families of finite elements, or
+different formulations of the equation. For geophysical fluid dynamics
+applications there are additional considerations relating to the
+geometry and types of waves present in the flow. For example, the
+scales of motion in the horizontal and vertical directions differ by
+several orders of magnitude. (also: boundaries, vertical staggering
+for theta space)
 
 
 * In 3D the function spaces have a tensor product structure
@@ -244,13 +257,13 @@ order to demonstrate the similaries between the equations and justify
 the use of a unified codebase. The advantages of this unified approach
 become even clearer in section \ref{sec: FEM} where we present the
 compatible finite element discretisation of the different types of
-terms (e.g. pressure gradient, transport) seen in section \ref{sec:
-  governing}. In section \ref{sec: design} we describe the code
-structure of Gusto followed by a detailed example (section \ref{sec:
-  FML}) of the Form Manipulation Language (FML) that facilitates
-symbolic manipulation of the finite element forms within our
-timestepping code. Section \ref{sec: results} contains a selection of
-numerical results that showcases the range of discretisations
+terms (e.g. pressure gradient, transport, diffusion) seen in section
+\ref{sec: governing}. In section \ref{sec: design} we describe the
+code structure of Gusto followed by a detailed example (section
+\ref{sec: FML}) of the Form Manipulation Language (FML) that
+facilitates symbolic manipulation of the finite element forms within
+our timestepping code. Section \ref{sec: results} contains a selection
+of numerical results that showcases the range of discretisations
 available within Gusto. **mention here new functionality facilitated
 by the flexibility of Gusto? We summarise our current status and
 future directions in section \ref{sec: summary}.
@@ -781,7 +794,7 @@ barotropic jet \citep{galewsky2004initial}.
 
 
 
-\subsubsection{Grids and HDiv elements}
+\subsubsection{Grids and finite element families}
 
 \subsection{Compressible Boussinesq equations}
 
