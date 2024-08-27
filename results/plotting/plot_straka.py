@@ -37,8 +37,8 @@ contours = np.linspace(-7.5, 0.5, 17)
 colour_scheme = 'Blues_r'
 field_label = r'$\Delta \theta$ (K)'
 contour_method = 'tricontour'
-xlims = [0.0, 12.0]
-ylims = [0., 5.0]
+xlims = [0, 12]
+ylims = [0, 5]
 field_name = 'theta_perturbation'
 time_idx = -1
 
@@ -73,14 +73,15 @@ for i, (ax, results_opt, cbar, title) in \
 
     if cbar:
         add_colorbar_fig(
-            fig, cf, field_label, ax_idxs=[1], location='bottom'
+            fig, cf, field_label, ax_idxs=[1], location='bottom',
+            cbar_labelpad=-10, cbar_padding=0.02
         )
     tomplot_field_title(
         ax, title, minmax=True, field_data=field_data
     )
 
     # Labels -------------------------------------------------------------------
-    ax.set_ylabel(r'$z$ (km)', labelpad=-20)
+    ax.set_ylabel(r'$z$ (km)', labelpad=-10)
     ax.set_ylim(ylims)
     ax.set_yticks(ylims)
     ax.set_yticklabels(ylims)
