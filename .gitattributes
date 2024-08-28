@@ -1,0 +1,2 @@
+results/Williamson5/field_output.nc filter=lfs diff=lfs merge=lfs -text
+results/Galewsky_jet/field_output.nc filter=lfs diff=lfs merge=lfs -text
