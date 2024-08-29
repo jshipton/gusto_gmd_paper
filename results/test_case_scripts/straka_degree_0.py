@@ -72,12 +72,9 @@ def straka_bubble(
 
     # Equation
     parameters = CompressibleParameters()
-    u_diffusion_opts = DiffusionParameters(kappa=kappa, mu=mu0/delta)
-    theta_diffusion_opts = DiffusionParameters(kappa=kappa, mu=mu0/delta)
-    diffusion_options = [
-        ("u", u_diffusion_opts),
-        ("theta", theta_diffusion_opts)
-    ]
+    # Factor of 2 in mu thanks to recovery
+    diffusion_params = DiffusionParameters(kappa=kappa, mu=2.0*mu0/delta)
+    diffusion_options = [("u", diffusion_params), ("theta", diffusion_params)]
     eqns = CompressibleEulerEquations(
         domain, parameters, u_transport_option=u_eqn_type,
         diffusion_options=diffusion_options
@@ -122,8 +119,8 @@ def straka_bubble(
         BackwardEuler(domain, "theta", options=theta_opts)
     ]
     diffusion_methods = [
-        InteriorPenaltyDiffusion(eqns, "u", u_diffusion_opts),
-        InteriorPenaltyDiffusion(eqns, "theta", theta_diffusion_opts)
+        InteriorPenaltyDiffusion(eqns, "u", diffusion_params),
+        InteriorPenaltyDiffusion(eqns, "theta", diffusion_params)
     ]
 
     # Time stepper
