@@ -88,7 +88,7 @@ for i, (ax, time_idx, field_name, cbar) in \
         colour_scheme = rho_colour_scheme
         field_label = rho_field_label
         cmap, lines = tomplot_cmap(contours, colour_scheme, remove_contour=None)
-        cbar_labelpad = -10
+        cbar_labelpad = -80
         data_format = '.2e'
 
     elif field_name == 'X':
@@ -96,7 +96,7 @@ for i, (ax, time_idx, field_name, cbar) in \
         colour_scheme = X_colour_scheme
         field_label = X_field_label
         cmap, lines = tomplot_cmap(contours, colour_scheme, remove_contour=None)
-        cbar_labelpad = -10
+        cbar_labelpad = -80
         data_format = '.2e'
 
     elif field_name == 'X2':
@@ -107,7 +107,7 @@ for i, (ax, time_idx, field_name, cbar) in \
         colour_scheme = X2_colour_scheme
         field_label = X2_field_label
         cmap, lines = tomplot_cmap(contours, colour_scheme, remove_contour=None)
-        cbar_labelpad = -10
+        cbar_labelpad = -80
         data_format = '.2e'
 
     # Plot data ----------------------------------------------------------------
