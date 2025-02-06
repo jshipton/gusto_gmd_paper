@@ -583,30 +583,26 @@ The finite element discretisation of each term in an equation is
 represented in Firedrake by a UFL form object. FML defines a
 \texttt{Label} object which is used to tag a UFL form to create a
 \texttt{Term}, with the intention that the \texttt{Term} represents a
-term in the residual.
-
-FML defines a \texttt{Term} object that comprises the
-\texttt{ufl.Form} defining the finite element discretisation of the
-term and a dictionary of key-value pairs corresponding to the FML
-\texttt{Label} objects that apply to this term. An FML \texttt{Label}
-object has a name and an optional value, defaulting to \texttt{True}
-to indicate the presence of the label. Labels can also be used to tag
-parts of the form. For example, the \texttt{subject} label is used to
-tag the \texttt{Function} in the \texttt{ufl.Form} that represents the
-prognostic variable, or `subject' of the equation. These operations
-are composable, so more than one label can be attached to a term. The
-end result of labelling the terms in the residual is a
-\texttt{LabelledForm} object that holds a list of terms, pairing
-individual \texttt{ufl.Form} objects with FML labels. Labelled forms
-can be added together, multiplied by floats and have additional terms
-added. More complex manipulations are enabled by the
-\texttt{label\_map} method that provides a way of filtering the terms
-in the form based on their labels, applying different mappings to
-terms that pass or fail the conditions defined in the filter. A common
-operation might be to filter for terms that have a certain label, such
-as \texttt{transport}, drop terms that do not have this label and
-multiply those that do by the timestep. We shall demonstrate this in
-the following example.
+term in the residual. The \texttt{Label} object consists of a name and
+an optional value, defaulting to \texttt{True} to indicate the
+presence of the label. Labels can be used to tag terms to identify
+them as representing particular processes, such as transport, or they
+can tag parts of the form. For example, the \texttt{subject} label is
+used to tag the \texttt{Function} in the \texttt{ufl.Form} that
+represents the prognostic variable, or `subject' of the
+equation. These operations are composable, so more than one label can
+be attached to a term. The end result of labelling the terms in the
+residual is a \texttt{LabelledForm} object that holds a list of terms,
+pairing individual \texttt{ufl.Form} objects with FML labels. Labelled
+forms can be added together, multiplied by floating point numbers and
+extended by adding additional terms. More complex manipulations are
+enabled by the \texttt{label\_map} method that provides a way of
+filtering the terms in the form based on their labels, applying
+different mappings to terms that pass or fail the conditions defined
+in the filter. A common operation might be to filter for terms that
+have a certain label, such as \texttt{transport}, drop terms that do
+not have this label and multiply those that do by the timestep. We
+shall demonstrate this in the following example.
 
 \subsection{Example}
 
