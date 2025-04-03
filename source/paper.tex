@@ -186,32 +186,32 @@ function space for each field. Using different finite element function
 spaces for each field gives what is known as a mixed finite element
 discretisation.
 
-If the different finite element function spaces are chosen so that
-discrete versions of vector calculus identities hold then the
-discretisation is called `mimetic' or `compatible'. These methods are
-useful in a variety of applications due to their ability to capture
-the underlying geometric structure of the governing equations. In the
-context of geophysical fluid dynamics, these methods are useful
-because they represent geostrophic balance exactly which is crucial
-for reproducing accurate simulations of the large-scale flow. In
-addition to this, there is flexibility within the compatible finite
-element framework to choose function spaces that also give other
-advantages such as energy conservation, local mass conservation and
-discrete dispersion properties that lead to no spurious pressure
-modes.
+`Compatible' or `mimetic' finite element discretisations are
+constructed by choosing the different finite element function spaces
+so that discrete versions of continuous vector calculus identities
+hold. These methods are useful in a variety of applications due to
+their ability to capture the underlying geometric structure of the
+governing equations. In the context of geophysical fluid dynamics,
+these methods are useful because they represent geostrophic balance
+exactly which is crucial for reproducing accurate simulations of the
+large-scale flow. In addition to this, there is flexibility within the
+compatible finite element framework to choose function spaces that
+also give other advantages such as energy conservation, local mass
+conservation and discrete dispersion properties that lead to no
+spurious pressure modes.
 
 The compatible finite element spaces relevant for geophysical fluid
 dynamics are constructed from a discrete differential complex called
 the de Rham complex. This is a sequence of spaces with differential
 operators between them that map onto the kernal of the next operator
 in the sequence. This is often summarised in a commutation diagram as
-in figures \ref{fig:3D de Rham} and \ref{fig:2D de Rham}. In these
+in figures \ref{fig:2D de Rham} and \ref{fig:3D de Rham}. In these
 diagrams the infinite dimensional spaces are along the top row and the
 $\pi_i$ denote projections into the corresponding finite dimensional
 subspace used in the compatible finite element discretisation. The
 differential operators are denoted by $\diff^k$ and these commute with
 the projections, meaning that $\diff^{k+1}\pi_k(\cdot) =
-\diff^{k+1}\pi_{k+1}(\cdot)$. This guarantees that, in 3D, $\nabla$
+\pi_{k+1}\diff^{k+1}(\cdot)$. This guarantees that, in 3D, $\nabla$
 maps onto the kernal of $\nabla\times$, ensuring
 $\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernal
 of $\nabla\cdot$, ensuring that $\nabla\cdot\nabla\times(\cdot)=0$;
@@ -223,6 +223,14 @@ kernal of $\nabla^\perp$, ensuring that
 $\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
 constructing discretisations for geophysical fluid dynamics since it
 enables schemes with local mass conservation \citep{}.
+
+\begin{figure}\label{fig:2D de Rham}
+  \centering{\includegraphics{de_rham_fig_2d.pdf}}
+\end{figure}
+
+\begin{figure}\label{fig:3D de Rham}
+  \centering{\includegraphics{de_rham_fig_3d.pdf}}
+\end{figure}
 
 Given that there are many promising avenues for research in the area
 of compatible finite element discretisations for geophysical fluid
@@ -656,7 +664,9 @@ has the value \texttt{q}.
 
 \lstinputlisting[caption={This code defines and labels the residual corresponding to equation \ref{eq:weak-advdiff}}, label={lst:define-residual}, language=python, firstline=24, lastline=31]{code/advection_diffusion_splitting_example.py}
 
-To define the solvers for the explicit and implicit steps we need to create UFL forms for the left and right sides, given by the following equations
+To define the solvers for the explicit and implicit timesteps
+(equations \ref{eq:explicit-advdiff} and \ref{eq:implicit-advdiff}),
+we need to create UFL forms given by the following equations
 \begin{align}
   \label{eq:explicit-advdiff}
   \int_\Omega vq^* \diff x &= \int_\Omega vq^n \diff x - \Delta t c \int_\Omega v q_x^n \diff x, &\quad \forall v \in P^2, \\
