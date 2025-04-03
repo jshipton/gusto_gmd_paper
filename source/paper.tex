@@ -145,19 +145,27 @@ TEXT
 \item many choices and research to be done - Colin says so in his Acta Numerica paper! - therefore flexible implementation is useful
 \end{itemize}
 
-Compatible finite elements provide a route to stable, consistent
+Compatible finite elements %!TB methods?
+provide a route to stable, consistent
 discretisations of the partial differential equations governing
-geophysical fluids which also have the correct wave propagation speeds
+geophysical fluids %!TB cite acta numerica
+%!TB Suggest rewriting and combining the following two sentences:
+which also have the correct wave propagation speeds
 and avoid spurious computational modes, even on non-uniform
-grids. These properties, along with conservation of mass and
+grids.
+These properties, along with conservation of mass and
 potentially other quantities such as energy and enstrophy, are
 considered essential for the accuracy of the dynamical core of weather
-and climate models \citep{staniforth2012horizontal}. Achieving these
+and climate models \citep{staniforth2012horizontal}.
+Achieving these
 properties on a non-orthogonal grid is important because of parallel
-scaling**. While the required properties of the discretisation guide the
+scaling**. %!TB citation and expand on this. Reference Met Office and GungHo
+While the required properties of the discretisation guide the
 choice of finite element spaces, there are many options for both the
 spatial and temporal discretisation and it is not clear which will be
-best for any particular problem. Gusto provides a flexible,
+best for any particular problem.
+%!TB Maybe a bit more direct about what Gusto is and why?
+Gusto provides a flexible,
 extensible, easy-to-use toolkit of options for rapid prototyping of
 different spatial and temporal discretisations based on the compatible
 finite element framework applied to geophysical fluid dynamics
@@ -175,14 +183,16 @@ capabilities and outline our vision for future development.
 
 The finite element method represents fields (e.g. velocity, pressure,
 density or temperature) on a mesh made of non-overlapping, conforming
-cells, or elements. Within each element, the field is represented as a
+cells, or elements. %!TB: what does conforming mean here? Can we clarify what we mean by element? Do we want to say something about the elements being the same across the mesh?
+Within each element, the field is represented as a
 sum of coefficients multiplied by polynomial basis functions. The
 finite element space is specified by the degree of the polynomial
 basis functions and the continuity of these functions between the
 elements. The partial differential equations used in weather and
 climate modelling have multiple prognostic fields and it is not
 necessary, or indeed desirable, to use the same finite element
-function space for each field. Using different finite element function
+function space for each field. %!TB: should we distinguish between finite elements and function spaces?
+Using different finite element function
 spaces for each field gives what is known as a mixed finite element
 discretisation.
 
@@ -203,7 +213,7 @@ spurious pressure modes.
 The compatible finite element spaces relevant for geophysical fluid
 dynamics are constructed from a discrete differential complex called
 the de Rham complex. This is a sequence of spaces with differential
-operators between them that map onto the kernal of the next operator
+operators between them that map onto the kernel of the next operator
 in the sequence. This is often summarised in a commutation diagram as
 in figures \ref{fig:2D de Rham} and \ref{fig:3D de Rham}. In these
 diagrams the infinite dimensional spaces are along the top row and the
@@ -212,17 +222,17 @@ subspace used in the compatible finite element discretisation. The
 differential operators are denoted by $\diff^k$ and these commute with
 the projections, meaning that $\diff^{k+1}\pi_k(\cdot) =
 \pi_{k+1}\diff^{k+1}(\cdot)$. This guarantees that, in 3D, $\nabla$
-maps onto the kernal of $\nabla\times$, ensuring
-$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernal
+maps onto the kernel of $\nabla\times$, ensuring
+$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernel
 of $\nabla\cdot$, ensuring that $\nabla\cdot\nabla\times(\cdot)=0$;
-i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$ maps
-onto the kernal of $\nabla\cdot$, ensuring that
+i.e.\, the spaces are compatible. In 2D we have that $\nabla^\perp$ maps
+onto the kernel of $\nabla\cdot$, ensuring that
 $\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to write this de
-Rham complex such that instead we have that $\nabla$ maps onto the
-kernal of $\nabla^\perp$, ensuring that
+Rham complex such that instead $\nabla$ maps onto the
+kernel of $\nabla^\perp$, ensuring that
 $\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
 constructing discretisations for geophysical fluid dynamics since it
-enables schemes with local mass conservation \citep{}.
+enables schemes with local mass conservation \citep{}. %!TB: citation
 
 \begin{figure}\label{fig:2D de Rham}
   \centering{\includegraphics{de_rham_fig_2d.pdf}}
@@ -235,17 +245,22 @@ enables schemes with local mass conservation \citep{}.
 Given that there are many promising avenues for research in the area
 of compatible finite element discretisations for geophysical fluid
 dynamics (**where to say what these are?), a flexible, extensible
-implementation of the methods is strongly desirable. This is
+implementation of the methods is strongly desirable. %!TB: should we change this sentence to start with the Met Office link? "Because of these promising properties, gungho. However there are still many important avenues for research and unanswered questions
+%! - time stepping methods
+%! - solver techniques
+%! - aspects of physics-dynamics coupling
+This is
 especially required because, while it is feasible for someone to write
 a code implementing a specific finite element discretisation of a PDE,
 the code quickly becomes complicated and unsustainable when
 investigating different orders or families of finite elements, or
-different formulations of the equation. For geophysical fluid dynamics
+different formulations of the equation. %!TB: this sentence felt a bit clunky. I guess we want to say that "The research of these questions can often be difficult in operational models, which are generally designed to execute specific configurations very efficiently. So the purpose of Gusto is to facilitate research by providing a flexible, extensible framework, in which the implementation of new methods is easier.
+For geophysical fluid dynamics
 applications there are additional considerations relating to the
 geometry and types of waves present in the flow. For example, the
 scales of motion in the horizontal and vertical directions differ by
 several orders of magnitude. (also: boundaries, vertical staggering
-for theta space)
+for theta space) %!TB: this point feels a bit out of place here, should we move it above?
 
 
 * In 3D the function spaces have a tensor product structure
@@ -261,7 +276,7 @@ different spatial and temporal discretisations can be applied to a
 range of different equation sets relevant for weather and climate
 modelling. In section \ref{sec: governing} we will outline three
 different equations commonly used for modelling geophysical fluids in
-order to demonstrate the similaries between the equations and justify
+order to demonstrate the similarities between the equations and justify
 the use of a unified codebase. The advantages of this unified approach
 become even clearer in section \ref{sec: FEM} where we present the
 compatible finite element discretisation of the different types of
