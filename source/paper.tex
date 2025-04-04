@@ -145,25 +145,36 @@ TEXT
 \item many choices and research to be done - Colin says so in his Acta Numerica paper! - therefore flexible implementation is useful
 \end{itemize}
 
-Compatible finite elements provide a route to stable, consistent
-discretisations of the partial differential equations governing
-geophysical fluids which also have the correct wave propagation speeds
-and avoid spurious computational modes, even on non-uniform
-grids. These properties, along with conservation of mass and
-potentially other quantities such as energy and enstrophy, are
-considered essential for the accuracy of the dynamical core of weather
-and climate models \citep{staniforth2012horizontal}. Achieving these
-properties on a non-orthogonal grid is important because of parallel
-scaling**. While the required properties of the discretisation guide the
-choice of finite element spaces, there are many options for both the
-spatial and temporal discretisation and it is not clear which will be
-best for any particular problem. Gusto provides a flexible,
-extensible, easy-to-use toolkit of options for rapid prototyping of
-different spatial and temporal discretisations based on the compatible
-finite element framework applied to geophysical fluid dynamics
-equations relevant to numerical weather and climate prediction. In
-this paper we introduce Gusto to the community, summarise its current
-capabilities and outline our vision for future development.
+Compatible finite element methods provide a route to stable,
+consistent discretisations of the partial differential equations
+governing geophysical fluids \citep{cotter2023compatible}. They
+possess many of the desirable properties described by
+\citep{staniforth2012horizontal} as essential for the accuracy of the
+dynamical core of weather and climate models, such as conservation of
+mass (and potentially other quantities such as energy and enstrophy),
+correct wave propagation speeds and avoidance of spurious
+computational modes, even on non-orthogonal grids. Obtaining these
+properties on a non-orthogonal grid is important because weather and
+climate models achieve optimal performance on supercomputers by
+performing calculations concurrently, or in parallel. In practice,
+this means that the spatial domain is partitioned into subdomains that
+are shared across the processors and data on the boundaries of the
+subdomains needs to be shared between the processors to compute a
+global solution. Current trends in supercomputer architectures
+
+
+are run on massivly parallel supercomputers that require the co Spatial domain decomposition methods share the computation
+across processors by While the required properties of the
+discretisation guide the choice of finite element spaces, there are
+many options for both the spatial and temporal discretisation and it
+is not clear which will be best for any particular problem. Gusto
+provides a flexible, extensible, easy-to-use toolkit of options for
+rapid prototyping of different spatial and temporal discretisations
+based on the compatible finite element framework applied to
+geophysical fluid dynamics equations relevant to numerical weather and
+climate prediction. In this paper we introduce Gusto to the community,
+summarise its current capabilities and outline our vision for future
+development.
 
 \subsection{Background}
 
@@ -182,12 +193,12 @@ basis functions and the continuity of these functions between the
 elements. The partial differential equations used in weather and
 climate modelling have multiple prognostic fields and it is not
 necessary, or indeed desirable, to use the same finite element
-function space for each field. Using different finite element function
-spaces for each field gives what is known as a mixed finite element
-discretisation.
+representation for each field. Using different finite element
+representations for each field gives what is known as a mixed finite
+element discretisation.
 
 `Compatible' or `mimetic' finite element discretisations are
-constructed by choosing the different finite element function spaces
+constructed by choosing the different finite element representations
 so that discrete versions of continuous vector calculus identities
 hold. These methods are useful in a variety of applications due to
 their ability to capture the underlying geometric structure of the
@@ -195,7 +206,7 @@ governing equations. In the context of geophysical fluid dynamics,
 these methods are useful because they represent geostrophic balance
 exactly which is crucial for reproducing accurate simulations of the
 large-scale flow. In addition to this, there is flexibility within the
-compatible finite element framework to choose function spaces that
+compatible finite element framework to choose representations that
 also give other advantages such as energy conservation, local mass
 conservation and discrete dispersion properties that lead to no
 spurious pressure modes.
@@ -203,7 +214,7 @@ spurious pressure modes.
 The compatible finite element spaces relevant for geophysical fluid
 dynamics are constructed from a discrete differential complex called
 the de Rham complex. This is a sequence of spaces with differential
-operators between them that map onto the kernal of the next operator
+operators between them that map onto the kernel of the next operator
 in the sequence. This is often summarised in a commutation diagram as
 in figures \ref{fig:2D de Rham} and \ref{fig:3D de Rham}. In these
 diagrams the infinite dimensional spaces are along the top row and the
@@ -212,17 +223,17 @@ subspace used in the compatible finite element discretisation. The
 differential operators are denoted by $\diff^k$ and these commute with
 the projections, meaning that $\diff^{k+1}\pi_k(\cdot) =
 \pi_{k+1}\diff^{k+1}(\cdot)$. This guarantees that, in 3D, $\nabla$
-maps onto the kernal of $\nabla\times$, ensuring
-$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernal
+maps onto the kernel of $\nabla\times$, ensuring
+$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernel
 of $\nabla\cdot$, ensuring that $\nabla\cdot\nabla\times(\cdot)=0$;
 i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$ maps
-onto the kernal of $\nabla\cdot$, ensuring that
+onto the kernel of $\nabla\cdot$, ensuring that
 $\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to write this de
-Rham complex such that instead we have that $\nabla$ maps onto the
-kernal of $\nabla^\perp$, ensuring that
-$\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
-constructing discretisations for geophysical fluid dynamics since it
-enables schemes with local mass conservation \citep{}.
+Rham complex such that instead $\nabla$ maps onto the kernel of
+$\nabla^\perp$, ensuring that $\nabla^\perp\cdot\nabla(\cdot)=0$, but
+the former is more useful in constructing discretisations for
+geophysical fluid dynamics since it enables schemes with local mass
+conservation \citep{}.
 
 \begin{figure}\label{fig:2D de Rham}
   \centering{\includegraphics{de_rham_fig_2d.pdf}}
@@ -232,20 +243,17 @@ enables schemes with local mass conservation \citep{}.
   \centering{\includegraphics{de_rham_fig_3d.pdf}}
 \end{figure}
 
-Given that there are many promising avenues for research in the area
-of compatible finite element discretisations for geophysical fluid
-dynamics (**where to say what these are?), a flexible, extensible
-implementation of the methods is strongly desirable. This is
-especially required because, while it is feasible for someone to write
-a code implementing a specific finite element discretisation of a PDE,
-the code quickly becomes complicated and unsustainable when
-investigating different orders or families of finite elements, or
-different formulations of the equation. For geophysical fluid dynamics
-applications there are additional considerations relating to the
-geometry and types of waves present in the flow. For example, the
-scales of motion in the horizontal and vertical directions differ by
-several orders of magnitude. (also: boundaries, vertical staggering
-for theta space)
+Due to these promising properties, the next Met Office dynamical core
+will use the lowest order compatible finite element discretisation on
+the cubed sphere \citep{}. However, there are many important avenues
+for research and unanswered questions relating to, for example,
+timestepping methods, linear solver techniques and how to couple
+unresolved physics processes to the resolved dynamics. This type of
+research is difficult in operational models, which are generally
+designed to execute specific configurations very efficiently. The
+purpose of Gusto is to facilitate this research by providing an open
+source, flexible, extensible framework 
+
 
 
 * In 3D the function spaces have a tensor product structure
@@ -261,7 +269,7 @@ different spatial and temporal discretisations can be applied to a
 range of different equation sets relevant for weather and climate
 modelling. In section \ref{sec: governing} we will outline three
 different equations commonly used for modelling geophysical fluids in
-order to demonstrate the similaries between the equations and justify
+order to demonstrate the similarities between the equations and justify
 the use of a unified codebase. The advantages of this unified approach
 become even clearer in section \ref{sec: FEM} where we present the
 compatible finite element discretisation of the different types of
@@ -409,11 +417,12 @@ implemented in software so that it can be applied to any of the
 equation sets.
 
 The finite element discretisation is formed by choosing appropriate
-function spaces for the prognostic variables, multiplying by test
-functions from these function spaces and integrating over the
-domain. In addition to this, we integrate by parts when the
-inter-element continuity of the basis functions is not sufficient to
-define the result of applying the differential operator directly.
+representations, or function spaces, for the prognostic variables,
+multiplying by test functions from these function spaces and
+integrating over the domain. In addition to this, we integrate by
+parts when the inter-element continuity of the basis functions is not
+sufficient to define the result of applying the differential operator
+directly.
 
 In line with the theory outlined in section \ref{}, we always choose
 the velocity $\MM{u} \in \mathbb{V}_u$ with $\mathbb{V}_u \subset
@@ -489,7 +498,24 @@ Since the prognostic variables are discretised using different finite
 element function spaces $\mathbb{V}_u$, $\mathbb{V}_p$ and
 $\mathbb{V}_\theta$, each with different continuity properties between
 the elements, the choice of stable transport discretisation is
-different for each prognostic variable. 
+different for each prognostic variable. The spatial order of the
+finite element spaces also imposes requirements on the choice of
+transport scheme. In particular, when the lowest order space
+$\mathbb{V}_p$ is chosen to be DG0, we need to use the recovered
+transport scheme described in \citet{bendall2019recovered} to achieve
+second order convergence overall. Here we describe the default
+transport schemes used in Gusto for higher order function spaces and
+refer the reader to \citet{bendall2019recovered} for details of the
+recovered schemes, which are also implemented in Gusto.
+
+
+These schemes do not preserve the monotonicity of the continuous
+equation, generating spurious over and undershoots. When monotonicity
+is important, for example, to avoid generating spurious and unphysical
+negative values of moisture variables, we can apply a limiter as part
+of the transport scheme.
+
+\JScomment{I think that we should at least mention that we can do horizonal and vertical splitting for stability - maybe don't need to write out all of the forms though!}
 
 
 \subsection{Viscous and diffusive terms}
