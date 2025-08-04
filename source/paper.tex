@@ -149,32 +149,38 @@ Compatible finite element methods provide a route to stable,
 consistent discretisations of the partial differential equations
 governing geophysical fluids \citep{cotter2023compatible}. They
 possess many of the desirable properties described by
-\citep{staniforth2012horizontal} as essential for the accuracy of the
+\citet{staniforth2012horizontal} as essential for the accuracy of the
 dynamical core of weather and climate models, such as conservation of
 mass (and potentially other quantities such as energy and enstrophy),
 correct wave propagation speeds and avoidance of spurious
 computational modes, even on non-orthogonal grids. Obtaining these
 properties on a non-orthogonal grid is important because weather and
 climate models achieve optimal performance on supercomputers by
-performing calculations concurrently, or in parallel. In practice,
-this means that the spatial domain is partitioned into subdomains that
-are shared across the processors and data on the boundaries of the
-subdomains needs to be shared between the processors to compute a
-global solution. Current trends in supercomputer architectures
+performing calculations concurrently, or in parallel, and orthogonal
+grids of a spherical manifold will necessarily have singular points
+that lead to a degredation in parallel scaling. An example of this is
+the commonly-used latitude-longitude grid where the singular points
+are the poles.
 
+% In practice, this means that the spatial domain is partitioned into
+% subdomains that are shared across the processors and data on the
+% boundaries of the subdomains needs to be shared between the
+% processors to compute a global solution. Current trends in
+% supercomputer architectures
+% are run on massivly parallel supercomputers that require the co
+% Spatial domain decomposition methods share the computation
+% across processors by
 
-are run on massivly parallel supercomputers that require the co Spatial domain decomposition methods share the computation
-across processors by While the required properties of the
-discretisation guide the choice of finite element spaces, there are
-many options for both the spatial and temporal discretisation and it
-is not clear which will be best for any particular problem. Gusto
-provides a flexible, extensible, easy-to-use toolkit of options for
-rapid prototyping of different spatial and temporal discretisations
-based on the compatible finite element framework applied to
-geophysical fluid dynamics equations relevant to numerical weather and
-climate prediction. In this paper we introduce Gusto to the community,
-summarise its current capabilities and outline our vision for future
-development.
+While the required properties of the discretisation guide the choice
+of finite element spaces, there are many options for both the spatial
+and temporal discretisation and it is not clear which will be best for
+any particular problem. Gusto provides a flexible, extensible,
+easy-to-use toolkit of options for rapid prototyping of different
+spatial and temporal discretisations based on the compatible finite
+element framework applied to geophysical fluid dynamics equations
+relevant to numerical weather and climate prediction. In this paper we
+introduce Gusto to the community, summarise its current capabilities
+and outline our vision for future development.
 
 \subsection{Background}
 
