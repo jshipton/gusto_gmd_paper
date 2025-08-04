@@ -451,12 +451,19 @@ multiplying by test functions from these function spaces and
 integrating over the domain. In addition to this, we integrate by
 parts when the interelement continuity of the basis functions is not
 sufficient to define the result of applying the differential operator
-directly.
+directly. For the domains considered in this paper, the only boundary
+conditions we use are those of no normal flow, $\MM{u}\cdot\MM{n}=0$
+where $\MM{n}$ is the outward pointing normal to the boundary. This
+means that the test function for the velocity must also be chosen from
+a function space that has this boundary condition.
 
 In line with the theory outlined in the introduction, we always choose
-the velocity $\MM{u} \in \mathbb{V}^{HDiv}$ with $\mathbb{V}^{HDiv}
-\subset H(\text{div})$. **mention bcs here! The field whose gradient
-appears in the `pressure' gradient term is chosen to be in the space
+the velocity $\MM{u} \in \ring{\mathbb{V}}^{HDiv}$ with
+$\ring{\mathbb{V}}^{HDiv} \subset \mathbb{V}^{HDiv} \subset
+H(\text{div})$ and, as mentioned above, the $\ring{}$ indicates that
+the functions in $\ring{\mathbb{V}}^{HDiv}$ satisfy the no normal flow
+boundary conditions. The field whose gradient appears in the
+`pressure' gradient term is chosen to be in the space
 $\mathbb{V}^{L^2}$ with $\mathbb{V}^{L^2} \subset L_2$, or, in the
 case of the more complex nonlinear pressure gradient term for the
 compressible Euler equations, it is a function of a variable in this
@@ -486,24 +493,24 @@ integrated by parts. In the linear case, using the notation for the
 compressible Boussinesq equations, the weak form is
 
 \begin{equation}
-\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x, \quad \forall \MM{w} \in \mathbb{V}_u,
+\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
 \end{equation}
 where $\Omega$ denotes the domain and there are no surface terms from
 the integration by parts because these vanish on interior element
 boundaries since the normal component of $\MM{w}$ is continuous across
 element facets and on exterior boundaries we set no normal flow
-boundary conditions**. However, the pressure gradient term in the
+boundary conditions. However, the pressure gradient term in the
 compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
 this introduces an additional complication. Integration by parts is
 still required since $\Pi$ is evaluated as a function of the density
-$\rho \in \mathbb{V}_\rho$ and $\theta \in \mathbb{V}_\theta$ so is
+$\rho \in \mathbb{V}^{L^2}$ and $\theta \in \mathbb{V}_\theta$ so is
 discontinuous between elements, but then integrating by parts
 transfers the differential operator to $\MM{w}\theta$ which is
 discontinuous in the horizontal direction. Following \ref{} we integrate by parts
 in each element $e$, giving
 
 \begin{equation}
-  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S,
+  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
 \end{equation}
 where $\partial e$ denotes the element facets, $\MM{n}$ is the outward
 pointing normal to the facet and $\hat{q}$ denotes the value of a
@@ -511,7 +518,7 @@ variable $q$ on the facet, which for discontinuous variables does not
 have a unique definition. Summing over the domain gives
 
 \begin{equation}
-  c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S,
+  c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
 \end{equation}
 where $\Gamma_v$ denotes the vertical element facets, across which
 $\theta$, and therefore $\Pi$, are discontinuous. Here we have chosen,
@@ -524,18 +531,90 @@ across these facets so the jump is zero.
 
 \subsection{Transport terms}
 Since the prognostic variables are discretised using different finite
-element function spaces $\mathbb{V}_u$, $\mathbb{V}_p$ and
+element function spaces $\mathbb{V}^{HDiv}$, $\mathbb{V}^{L^2}$ and
 $\mathbb{V}_\theta$, each with different continuity properties between
 the elements, the choice of stable transport discretisation is
 different for each prognostic variable. The spatial order of the
 finite element spaces also imposes requirements on the choice of
 transport scheme. In particular, when the lowest order space
-$\mathbb{V}_p$ is chosen to be DG0, we need to use the recovered
-transport scheme described in \citet{bendall2019recovered} to achieve
-second order convergence overall. Here we describe the default
-transport schemes used in Gusto for higher order function spaces and
-refer the reader to \citet{bendall2019recovered} for details of the
-recovered schemes, which are also implemented in Gusto.
+$\mathbb{V}^{L2}$ is chosen to be piecewise constant, we need to use
+the recovered transport scheme described in
+\citet{bendall2019recovered} to achieve second order convergence
+overall. Here we describe the default transport schemes used in Gusto
+for the next-to-lowest order sequence of function spaces (i.e. where
+the lowest order space $\mathbb{V}^{L2}$ is chosen to be piecewise
+linear and discontinuous between elements) and refer the reader to
+\citet{bendall2019recovered} for details of the recovered schemes,
+which are also implemented in Gusto.
+
+\subsubsection{Transport of $\mathbb{V}^{L^2}$ fields}
+The shallow water and compressible Euler equation sets both contain a
+prognostic equation that is the continuity form of the transport
+equation for a variable represented by a function that is fully
+discontinuous between elements. This means that the divergence term is
+not well defined. A stable discretiation of this equation can be
+constructed by integrating that term by parts and taking the upwind
+values on the element facets. Using the compressible Euler equation
+notation, this gives, in each element $e$ with boundary $\partial e$:
+
+\begin{equation}
+  \int_e \phi\nabla\cdot(\rho\MM{u}) \diff x = -\int_e \nabla\phi \cdot (\rho\MM{u}) \diff x + \int_{\partial e} \phi\tilde{\rho}\MM{u}\cdot\MM{n} \diff S, \quad \forall \phi \in \mathbb{V}^{L^2}.
+\end{equation}
+Summing over the domain gives
+\begin{equation}
+  \int_\Omega \phi\nabla\cdot(\rho\MM{u}) \diff x = -\int_\Omega \nabla\phi \cdot (\rho\MM{u}) \diff x + \int_\Gamma \jump{\phi\MM{u}}\tilde{\rho} \diff S, \quad \forall \phi \in \mathbb{V}^{L^2},
+\end{equation}
+where $\Omega$ is the domain, $\Gamma$ denotes the element facets,
+$\tilde{\rho}$ denotes the value of $\rho$ on the upwind side of the
+facet and the brackets $\jump{q} = q^+-q^-$ denote the jump in $q$
+across the facet.
+
+\subsubsection{Transport of $\mathbb{V}_\theta$ fields}
+The compressible Boussinesq and compressible Euler equation sets both
+contain a prognostic equation that is the advective form of the
+transport equation for a variable that is represented by a function
+that is continuous in the vertical direction but discontinuous in the
+horizontal direction. This means that the gradient of the field
+required in the transport term is not well defined. A stable
+discretisation of this equation can be constructed by using a
+combination of the above upwinding strategy in the discontinuous
+horizontal direction and a streamline-upwind Petrov-Galerkin (SUPG)
+method in the continuous vertical dirction. The SUPG method replaces
+the finite element test function $\gamma$ with $\gamma + \tau
+\MM{u}\cdot\nabla\gamma$ where $\tau$ is a stabilisation parameter,
+although here we just require the vertical part of the gradient term. This
+has the effect of suppressing spurious oscillation associated with the
+continuous finite element approximation of the transport term. The
+stabilisation parameter $\tau$ depends on the spatial resolution and
+** and is set to be ** by default in Gusto, following \citet{}.
+
+We first integrate by parts in each column $C$ of the mesh, taking the
+upwind value of the field, indicated by a $\tilde{}$, on the vertical
+facets of the mesh, denoted by $\Gamma_v$. Using the notation of the
+compressible Euler equations, this gives
+
+\begin{align}
+  \int_C \gamma\MM{u}\cdot\nabla\theta\diff x &= -\int_C \nabla\cdot(\gamma\MM{u})\theta \diff x + \int_{\Gamma_v}\gamma \MM{u}\cdot\MM{n}\tilde{\theta}\diff S, \quad \forall \gamma \in \mathbb{V}_\theta, \\
+  &= \int_C \gamma\MM{u}\cdot\nabla\theta \diff x + \int_{\Gamma_v}\gamma \MM{u}\cdot\MM{n}(\tilde{\theta}-\theta_{int})\diff S, \quad \forall \gamma \in \mathbb{V}_\theta,
+\end{align}
+where we have integrated by parts a second time to move the
+differential operator from $\gamma$ back to $\theta$ since we need to
+replace the test function $\gamma$ with $\gamma+\tau w\gamma_z$, where
+$w=\MM{u}\cdot\hat{\MM{z}}$ is the vertical component of the
+velocity. This gives a second boundary term that now contains the
+value of $\theta$ in the interior of the column, denoted by
+$\theta_{int}$. Summing over the domain and applying the SUPG method
+in the vertical gives
+\begin{equation}
+  \int_C \gamma\MM{u}\cdot\nabla\theta\diff x =\int_\Omega(\gamma+\tau w\gamma_z)\MM{u}\cdot\nabla\theta \diff x + \int_{\Gamma_v}\jump{(\gamma+\tau w\gamma_z) \MM{u}}\tilde{\theta}-\jump{(\gamma+\tau w\gamma_z) \MM{u}\theta}\diff S, \quad \forall \gamma \in \mathbb{V}_\theta.
+\end{equation}
+Note that, as explained in \citet{Colin}, the test function should
+also be replaced in the time derivative term for consistency **
+  
+
+\subsubsection{Transport of $\mathbb{V}^{HDiv}$ fields}
+
+
 
 
 These schemes do not preserve the monotonicity of the continuous
