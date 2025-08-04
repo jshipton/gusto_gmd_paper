@@ -753,12 +753,13 @@ First consider the 1D viscous Burgers' equation
 \section{Results}
 \label{sec: results}
 The aim of this section is to present a selection of results that
-demonstrate the tools available in Gusto, such as the choice of grids,
+showcase the tools available in Gusto, such as the choice of grids,
 HDiv element families, order of finite element spaces, different
-spatial discretisation options, timestepping schemes and physics. The
-numerical properties of these configurations (convergence, stability,
-accuracy and efficiency) have either been demonstrated elsewhere, or
-will be investigated more thoroughly in future publications.
+spatial discretisation options and timestepping schemes.
+As these options can be combined in so many ways, it is only possible to present results from a tiny fraction configurations.
+We have chosen to use a selection from the hierarchy of standard test cases that span the stages of development of dynamical cores.
+Although we do include some results here that demonstrate the numerical properties of certain configurations, the purpose of this section is not to provide a rigorous verification of any particular choice of discretisation. Such results are demonstrated elsewhere, for instance \cite{bendall2020compatible} or \cite{hartney2025exploring}.
+The settings used for each result from this section are detailed in Appendix \ref{sec:appendix}.
 
 To include:
 \begin{itemize}
@@ -778,10 +779,13 @@ To include:
 \item Held Suarez??
 \end{itemize}
 
-\subsection{Terminator `toy' chemistry}
-This test combines transport and a `toy' chemistry model to
-demonstrate physics-dynamics coupling in Gusto (where here chemistry
-is the `physics').
+\subsection{Terminator Toy chemistry}
+The first results use the ``Terminator Toy'' test of \cite{lauritzen2015terminator}, which involves the transport of two coupled tracers $X$ and $X_2$ on the surface of a sphere.
+The chemicals interact such that the sum $2m_X+m_{X_2}$ should be preserved, where $m_X$ and $m_{X_2}$ are the mixing ratios of the individual chemicals.
+When positivity or monotonicity limiters are applied to the numerical transport scheme, this may break the correlation between the two species which will be highlighted by this test.
+This test is also a demonstration of simple ``physics-dynamics coupling'', as the conversion term between the species can be handled separately from the transport terms.
+
+
 
 \subsection{Shallow water}
 The standard suite of shallow water test cases originally proposed in
@@ -812,7 +816,6 @@ barotropic jet \citep{galewsky2004initial}.
 
 \subsubsection{Baroclinic wave on the sphere}
 
-\subsubsection{Held Suarez}
 
 \section{Summary}
 \label{sec: summary}
@@ -840,7 +843,7 @@ TEXT
 
 
 \appendix
-\section{}    %% Appendix A
+\section{Test Case Settings}  \label{sec:appendix}  %% Appendix A
 
 \subsection{}     %% Appendix A1, A2, etc.
 

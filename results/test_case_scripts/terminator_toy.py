@@ -70,13 +70,13 @@ def terminator_toy(
 
     # Define the two species as tracers
     X = ActiveTracer(
-        name='X', space='DG',
+        name='Y', space='DG',
         variable_type=TracerVariableType.mixing_ratio,
         transport_eqn=TransportEquationType.advective
     )
 
     X2 = ActiveTracer(
-        name='X2', space='DG',
+        name='Y2', space='DG',
         variable_type=TracerVariableType.mixing_ratio,
         transport_eqn=TransportEquationType.advective
     )
@@ -93,8 +93,8 @@ def terminator_toy(
     )
 
     # Define intermediate sums to be able to use the TracerDensity diagnostic
-    X_plus_X2 = Sum('X', 'X2')
-    X_plus_X2_plus_X2 = Sum('X_plus_X2', 'X2')
+    X_plus_X2 = Sum('Y', 'Y2')
+    X_plus_X2_plus_X2 = Sum('Y_plus_Y2', 'Y2')
     diagnostic_fields = [X_plus_X2, X_plus_X2_plus_X2]
     io = IO(domain, output, diagnostic_fields=diagnostic_fields)
 
@@ -102,14 +102,14 @@ def terminator_toy(
     # Define limiters for the interacting species
     limiter_space = domain.spaces('DG')
     sublimiters = {
-        'X': DG1Limiter(limiter_space),
-        'X2': DG1Limiter(limiter_space)
+        'Y': DG1Limiter(limiter_space),
+        'Y2': DG1Limiter(limiter_space)
     }
     MixedLimiter = MixedFSLimiter(eqn, sublimiters)
 
     transport_scheme = SSPRK3(domain, limiter=MixedLimiter)
     transport_method = [
-        DGUpwind(eqn, 'X'), DGUpwind(eqn, 'X2')
+        DGUpwind(eqn, 'Y'), DGUpwind(eqn, 'Y2')
     ]
 
     # Physics scheme --------------------------------------------------------- #
@@ -123,7 +123,7 @@ def terminator_toy(
     terminator_stepper = BackwardEuler(domain)
 
     physics_schemes = [
-        (TerminatorToy(eqn, k1=k1, k2=k2, species1_name='X', species2_name='X2'),
+        (TerminatorToy(eqn, k1=k1, k2=k2, species1_name='Y', species2_name='Y2'),
          terminator_stepper)
     ]
 
@@ -173,8 +173,8 @@ def terminator_toy(
     X2_0 = 0.5*(X_T_0 - D_val + r)
 
     # Initial conditions
-    stepper.fields("X").interpolate(X_0)
-    stepper.fields("X2").interpolate(X2_0)
+    stepper.fields("Y").interpolate(X_0)
+    stepper.fields("Y2").interpolate(X2_0)
 
     # ------------------------------------------------------------------------ #
     # Run

@@ -26,7 +26,7 @@ plot_stem = f'{abspath(dirname(__file__))}/../figures/galewsky_jet'
 # ---------------------------------------------------------------------------- #
 # Plot details
 # ---------------------------------------------------------------------------- #
-subplots_x = 2
+subplots_x = 1
 subplots_y = 2
 field_name = 'RelativeVorticity'
 time_idx = -1
