@@ -431,7 +431,7 @@ form is preferable so in Gusto we offer both forms of the equations.
 \section{Finite Element Discretisation}
 \label{sec: FEM}
 
-Comparing the equation sets given in the previous sections, we see
+Comparing the equation sets given in the previous section, we see
 several similarities. For example, the prognostic equation for the
 velocity always contains a nonlinear transport term, a term due to
 rotation and a `pressure' gradient term (in shallow water this is the
@@ -449,38 +449,38 @@ The finite element discretisation is formed by choosing appropriate
 representations, or function spaces, for the prognostic variables,
 multiplying by test functions from these function spaces and
 integrating over the domain. In addition to this, we integrate by
-parts when the inter-element continuity of the basis functions is not
+parts when the interelement continuity of the basis functions is not
 sufficient to define the result of applying the differential operator
 directly.
 
-In line with the theory outlined in section \ref{}, we always choose
-the velocity $\MM{u} \in \mathbb{V}_u$ with $\mathbb{V}_u \subset
-H(\text{div})$. The field whose gradient appears in the `pressure'
-gradient term is chosen to be in the space $\mathbb{V}_p$ with
-$\mathbb{V}_p \subset L_2$, or, in the case of the more complex
-nonlinear pressure gradient term for the compressible Euler equations,
-it is a function of a variable in this space. The compressible
-Boussinesq and compressible Euler equations have a third prognostic
-variable, either buoyancy or potential temperature, which is chosen to
-be in the space $\mathbb{V}_\theta$ which has degrees of freedom that
-are collocated with those of the vertical velocity, mimicking the
-Charney-Phillips staggering as discussed in **. These choices are
-governed by the properties required of discretisation of the
-linearised equation sets (as discussed in section ** and other
-refs). To solve the nonlinear equation sets we need to introduce
-stable and accurate discretisations of the transport terms and the
-nonlinear pressure gradient term in the compressible Euler equation
-set. In addition, some test cases require viscous and diffusive terms
-to generate converged solutions \ref{}. In the following subsections
-we illustrate a non-exhaustive (**probably!) selection of the options
-available in Gusto.
+In line with the theory outlined in the introduction, we always choose
+the velocity $\MM{u} \in \mathbb{V}^{HDiv}$ with $\mathbb{V}^{HDiv}
+\subset H(\text{div})$. **mention bcs here! The field whose gradient
+appears in the `pressure' gradient term is chosen to be in the space
+$\mathbb{V}^{L^2}$ with $\mathbb{V}^{L^2} \subset L_2$, or, in the
+case of the more complex nonlinear pressure gradient term for the
+compressible Euler equations, it is a function of a variable in this
+space. The compressible Boussinesq and compressible Euler equations
+have a third prognostic variable, either buoyancy or potential
+temperature, which is chosen to be in the space $\mathbb{V}_\theta$
+which has degrees of freedom that are collocated with those of the
+vertical velocity, mimicking the Charney-Phillips staggering as
+discussed in **. These choices are governed by the properties required
+of discretisation of the linearised equation sets (as discussed in
+section ** and other refs). To solve the nonlinear equation sets we
+need to introduce stable and accurate discretisations of the transport
+terms and the nonlinear pressure gradient term in the compressible
+Euler equation set. In addition, some test cases require viscous and
+diffusive terms to generate converged solutions \ref{}. In the
+following subsections we illustrate a non-exhaustive selection of the
+options available in Gusto.
 
 \subsection{Pressure gradient term}
 The pressure gradient term is discretised in a similar way for each
 equation set, with some additional considerations required for the
 nonlinear form of this term in the compressible Euler equations. Since
 the pressure (or depth, for shallow water) field is discretised in
-$\mathbb{V}_p \subset L_2$, meaning that it is discontinuous between
+$\mathbb{V}^{L^2} \subset L_2$, meaning that it is discontinuous between
 cells, the gradient is not defined globally and the term must be
 integrated by parts. In the linear case, using the notation for the
 compressible Boussinesq equations, the weak form is
@@ -492,14 +492,14 @@ where $\Omega$ denotes the domain and there are no surface terms from
 the integration by parts because these vanish on interior element
 boundaries since the normal component of $\MM{w}$ is continuous across
 element facets and on exterior boundaries we set no normal flow
-boundary conditions. However, the pressure gradient term in the
+boundary conditions**. However, the pressure gradient term in the
 compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
 this introduces an additional complication. Integration by parts is
 still required since $\Pi$ is evaluated as a function of the density
 $\rho \in \mathbb{V}_\rho$ and $\theta \in \mathbb{V}_\theta$ so is
 discontinuous between elements, but then integrating by parts
 transfers the differential operator to $\MM{w}\theta$ which is
-discontinuous in the horizontal. Following \ref{} we integrate by parts
+discontinuous in the horizontal direction. Following \ref{} we integrate by parts
 in each element $e$, giving
 
 \begin{equation}
@@ -514,13 +514,13 @@ have a unique definition. Summing over the domain gives
   c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S,
 \end{equation}
 where $\Gamma_v$ denotes the vertical element facets, across which
-$\theta$ is discontinuous. Here we have chosen, as in \citet{}, to take
-the average value of $\Pi$ across the facets, $\avg{\Pi} =
-(\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each side of the
-facet. The brackets $\jump{q} = q^+-q^-$ denote the jump in $q$
-across the facet and the integral over the horizontal facets vanishes
-since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous across
-these facets so the jump is zero.
+$\theta$, and therefore $\Pi$, are discontinuous. Here we have chosen,
+as in \citet{}, to take the average value of $\Pi$ across the facets,
+$\avg{\Pi} = (\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each
+side of the facet. The brackets $\jump{q} = q^+-q^-$ denote the jump
+in $q$ across the facet and the integral over the horizontal facets
+vanishes since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous
+across these facets so the jump is zero.
 
 \subsection{Transport terms}
 Since the prognostic variables are discretised using different finite
@@ -551,7 +551,7 @@ of the transport scheme.
 
 For the simulations presented here we do not require viscous or
 diffusive terms for stability, but sometimes they are required to
-produce converged solutions, ie. so that refining the grid does not
+produce converged solutions so that refining the grid does not
 lead to smaller and smaller scale motions. Here we present the symmetric
 interior penalty discretisation method used for these terms in Gusto.
 
@@ -601,13 +601,13 @@ and apply a time discretisation separately to each type of term. For
 example, the transport and forcing terms might be solved for
 separately, such as in **, which enables explicit transport schemes to
 be applied to each field. ** something about SIQN structure. Terms
-related to the physics are solved for in the appropriate part of the
-iteration loop, with physics processes that occur on `fast' timescales
-evaluated more frequently and `slower' physics processes evaluated
-just once at the end of the timestep. The choice of where to evaluate
-the physics processes in the iteration is also based on the
-computational cost and the best way to do this is still an open
-research question (**ref).
+involved in physics parameterisations are evaluated in the appropriate
+part of the iteration loop, with physics processes that occur on
+`fast' timescales evaluated more frequently and `slower' physics
+processes evaluated just once at the end of the timestep. The choice
+of where to evaluate the physics processes in the iteration is also
+based on the computational cost and the best way to do this is still
+an open research question (**ref).
 
 \begin{itemize}
 \item what about initialisation and diagnostics?
@@ -640,7 +640,7 @@ equation class. The timestepping methods are then able to reason about
 which manipulations to apply to which forms by applying filters that
 check for the presence of a label and, optionally, its value. Here we
 will describe the objects required to define labels and filters before
-illustrating this with a simple example(s?).
+illustrating this with some simple examples.
 
 The finite element discretisation of each term in an equation is
 represented in Firedrake by a UFL form object. FML defines a
@@ -667,7 +667,7 @@ have a certain label, such as \texttt{transport}, drop terms that do
 not have this label and multiply those that do by the timestep. We
 shall demonstrate this in the following example.
 
-\subsection{Example}
+\subsection{Example 1: IMEX-Euler applied to the 1d advection diffuction equation}
 
 We demonstrate the use of FML by applying a split timestepping scheme
 to the 1D advection diffusion equation
@@ -691,18 +691,18 @@ define and label the weak form of the residual, 2) build solvers for
 the explicit and implicit systems, 3) run the timestepping loop. Since
 the intention of this example is to demonstrate FML rather than the
 compatible finite element discretisation, we use the space of piecewise
-quadratic continuous Lagrange polynomials, denoted by $P_2$, for the
+linear continuous Lagrange polynomials, denoted by $P_1$, for the
 finite element discretisation as this greatly simplifies the
 forms. The finite element discretisation of equation
 \ref{eq:1dadvdiff} is then
 \begin{equation}\label{eq:weak-advdiff}
-  \int_\Omega vq_t \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0, \quad \forall v \in P_2,
+  \int_\Omega vq_t \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0, \quad \forall v \in P_1,
 \end{equation}
-where $v\in P_2$ is the test function and the diffusion term has been
+where $v\in P_1$ is the test function and the diffusion term has been
 integrated by parts.
 
 Listing \ref{lst:define-residual} presents the code to define this
-spatial discretisation of the residual with the $P_2$ function space
+spatial discretisation of the residual with the $P_1$ function space
 denoted by \texttt{V}. Here we omit the code that sets up the mesh,
 function spaces and parameters $c$ and $\kappa$, although this can be
 found in the supplementary materials. The first two lines define the
@@ -789,20 +789,20 @@ This simple example demonstrates the power of manipulating the terms
 in the equation based on the presence or absence of certain
 labels. The full strength of FML becomes even more apparant when we
 exploit information stored in the label value. We use this in two
-important situations in Gusto. The first situation is when we require
-a linearisation of the residual, for example when applying a Newton
-method to the full nonlinear equations \JScomment{should we clarify
-  that we mean a specific linearisation because Firedrake can do
-  Newton methods without FML?}, or to test a new algorithm or model
-setup on linear equations. The second situation is when we need to
-evaluate source terms that come from physics schemes. We can
-illustrate both situations with simple extensions to the above
-example.
+important situations in Gusto. The first situation is when we need to
+evaluate source terms that come from physics schemes. The second
+situation is when we require a linearisation of the residual, for
+example when applying a quasi-Newton method to solve the full
+nonlinear equations or when testing a new algorithm on the linear
+equations. We illustrate both situations in the following two
+examples.
 
-First consider the 1D viscous Burgers' equation
-\begin{equation}
-  u_t + uu_x + \nu u_{xx} = 0.
-\end{equation}
+\subsection{Example 2: Sequential splitting for an idealised chemistry-transport problem}
+
+
+
+\subsection{Example 3: Quasi-Newton }
+
 
 
 \section{Results}
