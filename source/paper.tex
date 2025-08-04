@@ -222,7 +222,7 @@ dynamics are constructed from a discrete differential complex called
 the de Rham complex. This is a sequence of spaces with differential
 operators between them that map onto the kernel of the next operator
 in the sequence. This is often summarised in a commutation diagram as
-in figures \ref{fig:2D de Rham} and \ref{fig:3D de Rham}. In these
+in figures \ref{fig:2DdeRham} and \ref{fig:3DdeRham}. In these
 diagrams the infinite dimensional spaces are along the top row and the
 $\pi_i$ denote projections into the corresponding finite dimensional
 subspace used in the compatible finite element discretisation. The
@@ -232,33 +232,57 @@ the projections, meaning that $\diff^{k+1}\pi_k(\cdot) =
 maps onto the kernel of $\nabla\times$, ensuring
 $\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernel
 of $\nabla\cdot$, ensuring that $\nabla\cdot\nabla\times(\cdot)=0$;
-i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$ maps
-onto the kernel of $\nabla\cdot$, ensuring that
-$\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to write this de
-Rham complex such that instead $\nabla$ maps onto the kernel of
-$\nabla^\perp$, ensuring that $\nabla^\perp\cdot\nabla(\cdot)=0$, but
-the former is more useful in constructing discretisations for
-geophysical fluid dynamics since it enables schemes with local mass
-conservation \citep{}.
+i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$
+(the 2D curl operator) maps onto the kernel of $\nabla\cdot$,
+ensuring that $\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to
+write this de Rham complex such that instead $\nabla$ maps onto the
+kernel of $\nabla^\perp$, ensuring that
+$\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
+constructing discretisations for geophysical fluid dynamics since it
+enables schemes with local mass conservation \citep{}.
 
-\begin{figure}\label{fig:2D de Rham}
-  \centering{\includegraphics{figures/de_rham_fig_2d.pdf}}
+\begin{figure}
+  \includegraphics{figures/de_rham_fig_2d.pdf}
+  \caption{De Rham complex for two dimensional spaces. The
+    interelement continuity of the functions decreases from left to
+    right, with functions in $\mathbb{V}^{H^1}$ being fully
+    continuous, those in $\mathbb{V}^{HDiv}$ having continuous normal
+    components and those in $\mathbb{V}^{L^2}$ being fully
+  discontinuous. The polynomial order also decreases from left to
+  right.}
+  \label{fig:2DdeRham}
 \end{figure}
 
-\begin{figure}\label{fig:3D de Rham}
-  \centering{\includegraphics{figures/de_rham_fig_3d.pdf}}
+\begin{figure}
+  \includegraphics{figures/de_rham_fig_3d.pdf}
+  \caption{De Rham complex for three dimensional spaces. The
+    interelement continuity of the functions decreases from left to
+    right, with functions in $\mathbb{V}^{H^1}$ being fully
+    continuous, those in $\mathbb{V}^{HCurl}$ having continuous
+    tangential components, those in $\mathbb{V}^{HDiv}$ having
+    continuous normal components and those in $\mathbb{V}^{L^2}$ being
+    fully discontinuous. The polynomial order also decreases from left
+    to right.}
+  \label{fig:3DdeRham}
 \end{figure}
 
 Due to these promising properties, the next Met Office dynamical core
 will use the lowest order compatible finite element discretisation on
 the cubed sphere \citep{}. However, there are many important avenues
-for research and unanswered questions relating to, for example,
-timestepping methods, linear solver techniques and how to couple
-unresolved physics processes to the resolved dynamics. This type of
-research is difficult in operational models, which are generally
-designed to execute specific configurations very efficiently. The
-purpose of Gusto is to facilitate this research by providing an open
-source, flexible, extensible framework 
+for research and unanswered questions relating to, for example, the
+choice of grid and $\mathbb{V}^{HDiv}_h$; the design of transport
+schemes; stable and efficient timestepping algorithms; linear solver
+techniques and how to couple unresolved physics processes to the
+resolved dynamics. This type of research is difficult in operational
+models, which are generally designed to execute specific
+configurations very efficiently. The purpose of Gusto is to facilitate
+this research by providing an open source, flexible, extensible
+framework that provides the key components required when designing
+algorithms for a dynamical core. These include: finite element
+function spaces defined on the sphere (where the Piola transform is
+required to... **); meshes that have a columnar structure (because**),
+stable transport and diffusion schemes for variables with different
+interelement continuity,
 
 
 
@@ -274,21 +298,20 @@ the design features that enable our flexible implementation whereby
 different spatial and temporal discretisations can be applied to a
 range of different equation sets relevant for weather and climate
 modelling. In section \ref{sec: governing} we will outline three
-different equations commonly used for modelling geophysical fluids in
-order to demonstrate the similarities between the equations and justify
-the use of a unified codebase. The advantages of this unified approach
-become even clearer in section \ref{sec: FEM} where we present the
-compatible finite element discretisation of the different types of
-terms (e.g. pressure gradient, transport, diffusion) seen in section
-\ref{sec: governing}. In section \ref{sec: design} we describe the
-code structure of Gusto followed by a detailed example (section
+different equation sets commonly used for modelling geophysical fluids
+in order to demonstrate the similarities between the equation sets and
+justify the use of a unified codebase. The advantages of this unified
+approach become even clearer in section \ref{sec: FEM} where we
+present the compatible finite element discretisation of the different
+types of terms (e.g. pressure gradient, transport, diffusion) seen in
+section \ref{sec: governing}. In section \ref{sec: design} we describe
+the code structure of Gusto followed by a detailed example (section
 \ref{sec: FML}) of the Form Manipulation Language (FML) that
 facilitates symbolic manipulation of the finite element forms within
 our timestepping code. Section \ref{sec: results} contains a selection
 of numerical results that showcases the range of discretisations
-available within Gusto. **mention here new functionality facilitated
-by the flexibility of Gusto? We summarise our current status and
-future directions in section \ref{sec: summary}.
+available within Gusto. We summarise our current status and future
+directions in section \ref{sec: summary}.
 
 \section{Governing Equations}
 \label{sec: governing}
@@ -339,8 +362,8 @@ because they incorporate compressibility effects without the
 complexity of discretising the nonlinear pressure gradient terms that
 we shall see in the compressible Euler equations. We write these
 equations in terms of the prognostic variables $\MM{u}$, $b$ and $p$
-where $\MM{u}$ is the velocity field, $b$ is the fluid buoyancy and
-$p$ is pressure. In terms of these variables, the equations are:
+where $\MM{u}$ is the velocity field, $p$ is pressure and $b$ is the
+fluid buoyancy. In terms of these variables, the equations are:
 
 \begin{align}
   \pp{\MM{u}}{t} + 
@@ -351,14 +374,14 @@ $p$ is pressure. In terms of these variables, the equations are:
 \end{align}
 where $\MM{\Omega}$ is the rotation vector of the domain,
 $\hat{\MM{k}}$ is the unit vector pointing upwards and $c$ is the
-acoustic wave speed. The equations have been written in
-three-dimensional form but they can also be solved in a
-two-dimensional vertical slice domain described by $(x, z)$
-coordinates. In this case the velocity $\MM{u}$ can either be
-two-dimensional as well (if there is no Coriolis force), or fully
-three-dimensional but with each cartensian component only varying in
-the $x-z$ plane. In the latter case this is implemented using a
-three-dimensional computational domain that is only one element wide
+acoustic wave speed. The equations describe the motion of a
+three dimensional stratified fluid but can also be solved in a
+two dimensional vertical slice domain described by $(x, z)$
+coordinates. In this case, the velocity $\MM{u}$ can either be
+two dimensional as well (if there is no Coriolis force), or fully
+three dimensional but with each Cartesian component only varying in
+the $x-z$ plane. In the latter case, this is implemented using a
+three dimensional computational domain that is only one element wide
 in the $y$-direction and with periodic boundary conditions also in
 that direction.
 
@@ -382,13 +405,13 @@ state. In terms of these variables, the equations are:
 \end{align}
 where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure, $R$
 is the gas constant, $c_p$ is the specific heat at constant pressure
-and $\kappa=R/c_p$. The equations have been written in
-three-dimensional form but they can also be solved in a
-two-dimensional vertical slice domain described by $(x, z)$
-coordinates. In this case the velocity $\MM{u}$ can either be two
+and $\kappa=R/c_p$. Again, these equations describe the motion of a
+three dimensional stratified fluid but can also be solved in a
+two dimensional vertical slice domain described by $(x, z)$
+coordinates. In this case, the velocity $\MM{u}$ can either be two
 dimensional as well (if there is no Coriolis force), or fully three
-dimensional but with each cartensian component only varying in the
-$x-z$ plane. In the latter case this is implemented using a three
+dimensional but with each Cartesian component only varying in the
+$x-z$ plane. In the latter case, this is implemented using a three
 dimensional computational domain that is only one element wide in the
 $y$-direction and with periodic boundary conditions also in that
 direction. \JScomment{I know this repeats what is said above but I
