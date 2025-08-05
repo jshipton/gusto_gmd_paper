@@ -158,7 +158,7 @@ properties on a non-orthogonal grid is important because weather and
 climate models achieve optimal performance on supercomputers by
 performing calculations concurrently, or in parallel, and orthogonal
 grids of a spherical manifold will necessarily have singular points
-that lead to a degredation in parallel scaling. An example of this is
+that lead to a degradation in parallel scaling. An example of this is
 the commonly-used latitude-longitude grid where the singular points
 are the poles.
 
@@ -167,7 +167,7 @@ are the poles.
 % boundaries of the subdomains needs to be shared between the
 % processors to compute a global solution. Current trends in
 % supercomputer architectures
-% are run on massivly parallel supercomputers that require the co
+% are run on massively parallel supercomputers that require the co
 % Spatial domain decomposition methods share the computation
 % across processors by
 
@@ -297,14 +297,14 @@ In this article we will describe the current capabilities of Gusto and
 the design features that enable our flexible implementation whereby
 different spatial and temporal discretisations can be applied to a
 range of different equation sets relevant for weather and climate
-modelling. In section \ref{sec: governing} we will outline three
+modelling. In section \ref{sec: equations} we will outline three
 different equation sets commonly used for modelling geophysical fluids
 in order to demonstrate the similarities between the equation sets and
 justify the use of a unified codebase. The advantages of this unified
 approach become even clearer in section \ref{sec: FEM} where we
 present the compatible finite element discretisation of the different
 types of terms (e.g. pressure gradient, transport, diffusion) seen in
-section \ref{sec: governing}. In section \ref{sec: design} we describe
+section \ref{sec: equations}. In section \ref{sec: design} we describe
 the code structure of Gusto followed by a detailed example (section
 \ref{sec: FML}) of the Form Manipulation Language (FML) that
 facilitates symbolic manipulation of the finite element forms within
@@ -314,11 +314,11 @@ available within Gusto. We summarise our current status and future
 directions in section \ref{sec: summary}.
 
 \section{Governing Equations}
-\label{sec: governing}
+\label{sec: equations}
 The aim of this section is to introduce three governing equation sets
 commonly used in the development of discretisation methods for weather
 and climate models, along with enough detail about the finite element
-discretiations provided by Gusto to demonstrate the similarities
+discretisations provided by Gusto to demonstrate the similarities
 between them. These similarities guide the design of the code
 structure described in the next section and motivate the use of Form
 Manipulation Language (FML) that underlies the flexibility of Gusto, a
@@ -530,6 +530,7 @@ vanishes since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous
 across these facets so the jump is zero.
 
 \subsection{Transport terms}
+\label{sec: transport}
 Since the prognostic variables are discretised using different finite
 element function spaces $\mathbb{V}^{HDiv}$, $\mathbb{V}^{L^2}$ and
 $\mathbb{V}_\theta$, each with different continuity properties between
@@ -548,11 +549,12 @@ linear and discontinuous between elements) and refer the reader to
 which are also implemented in Gusto.
 
 \subsubsection{Transport of $\mathbb{V}^{L^2}$ fields}
+\label{subsec: DG transport}
 The shallow water and compressible Euler equation sets both contain a
 prognostic equation that is the continuity form of the transport
 equation for a variable represented by a function that is fully
 discontinuous between elements. This means that the divergence term is
-not well defined. A stable discretiation of this equation can be
+not well defined. A stable discretisation of this equation can be
 constructed by integrating that term by parts and taking the upwind
 values on the element facets. Using the compressible Euler equation
 notation, this gives, in each element $e$ with boundary $\partial e$:
@@ -570,6 +572,7 @@ facet and the brackets $\jump{q} = q^+-q^-$ denote the jump in $q$
 across the facet.
 
 \subsubsection{Transport of $\mathbb{V}_\theta$ fields}
+\label{subsec: theta transport}
 The compressible Boussinesq and compressible Euler equation sets both
 contain a prognostic equation that is the advective form of the
 transport equation for a variable that is represented by a function
@@ -579,11 +582,11 @@ required in the transport term is not well defined. A stable
 discretisation of this equation can be constructed by using a
 combination of the above upwinding strategy in the discontinuous
 horizontal direction and a streamline-upwind Petrov-Galerkin (SUPG)
-method in the continuous vertical dirction. The SUPG method replaces
+method in the continuous vertical direction. The SUPG method replaces
 the finite element test function $\gamma$ with $\gamma + \tau
 \MM{u}\cdot\nabla\gamma$ where $\tau$ is a stabilisation parameter,
 although here we just require the vertical part of the gradient term. This
-has the effect of suppressing spurious oscillation associated with the
+has the effect of suppressing spurious oscillations associated with the
 continuous finite element approximation of the transport term. The
 stabilisation parameter $\tau$ depends on the spatial resolution and
 ** and is set to be ** by default in Gusto, following \citet{}.
@@ -606,21 +609,21 @@ value of $\theta$ in the interior of the column, denoted by
 $\theta_{int}$. Summing over the domain and applying the SUPG method
 in the vertical gives
 \begin{equation}
-  \int_C \gamma\MM{u}\cdot\nabla\theta\diff x =\int_\Omega(\gamma+\tau w\gamma_z)\MM{u}\cdot\nabla\theta \diff x + \int_{\Gamma_v}\jump{(\gamma+\tau w\gamma_z) \MM{u}}\tilde{\theta}-\jump{(\gamma+\tau w\gamma_z) \MM{u}\theta}\diff S, \quad \forall \gamma \in \mathbb{V}_\theta.
+  \int_\Omega \gamma\MM{u}\cdot\nabla\theta\diff x =\int_\Omega(\gamma+\tau w\gamma_z)\MM{u}\cdot\nabla\theta \diff x + \int_{\Gamma_v}\jump{(\gamma+\tau w\gamma_z) \MM{u}}\tilde{\theta}-\jump{(\gamma+\tau w\gamma_z) \MM{u}\theta}\diff S, \quad \forall \gamma \in \mathbb{V}_\theta.
 \end{equation}
 Note that, as explained in \citet{Colin}, the test function should
 also be replaced in the time derivative term for consistency **
   
 
 \subsubsection{Transport of $\mathbb{V}^{HDiv}$ fields}
-All three of the equation sets described in section \ref{} include a
-prognostic equation for the velocity field
+All three of the equation sets described in section \ref{sec:
+  equations} include a prognostic equation for the velocity field
 $\MM{u}\in\mathbb{V}^{HDiv}$ that contains a nonlinear transport term
 $\MM{u}\cdot\nabla\MM{u}$. This term can be discretised directly using
-a vector version of the scheme in section ** or, as in \citet{} it can
-be replaced by the vector invariant form and then discretised. In
-Gusto we offer both options and we present the vector invariant scheme
-below.
+a vector version of the scheme in section \ref{subsec: theta
+  transport} or, as shown in \citet{}, it can be replaced by the vector
+invariant form and then discretised. In Gusto we offer both options
+and we present the vector invariant scheme below.
 
 
 
@@ -676,7 +679,7 @@ equation set. The domain holds the mesh and the finite element
 function spaces along with any other information about the space-time
 domain such as the coordinates and the timestep. The prognostic
 equation sets are each defined in a python class, making use of the
-common finite element forms for the transport and difffusion terms to
+common finite element forms for the transport and diffusion terms to
 set up the residual (defined in section \ref{}) in weak form. At this
 point, no particular discretisation of the transport or diffusion
 forms is specified. This happens in the \texttt{SpatialMethod} class
@@ -759,7 +762,7 @@ have a certain label, such as \texttt{transport}, drop terms that do
 not have this label and multiply those that do by the timestep. We
 shall demonstrate this in the following example.
 
-\subsection{Example 1: IMEX-Euler applied to the 1d advection diffuction equation}
+\subsection{Example 1: IMEX-Euler applied to the 1d advection diffusion equation}
 
 We demonstrate the use of FML by applying a split timestepping scheme
 to the 1D advection diffusion equation
@@ -879,7 +882,7 @@ appropriate labels.
 
 This simple example demonstrates the power of manipulating the terms
 in the equation based on the presence or absence of certain
-labels. The full strength of FML becomes even more apparant when we
+labels. The full strength of FML becomes even more apparent when we
 exploit information stored in the label value. We use this in two
 important situations in Gusto. The first situation is when we need to
 evaluate source terms that come from physics schemes. The second
