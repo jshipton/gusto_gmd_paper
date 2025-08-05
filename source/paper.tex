@@ -625,7 +625,22 @@ a vector version of the scheme in section \ref{subsec: theta
 invariant form and then discretised. In Gusto we offer both options
 and we present the vector invariant scheme below.
 
-
+The starting point for this discretisation is to replace the
+$\MM{u}\cdot\nabla\MM{u}$ term with $(\nabla\times\MM{u})\times\MM{u}
++ \frac{1}{2}\nabla(\MM{u}\cdot\MM{u})$. Now, multiplying by a test
+function and integrating by parts over an element $e$ with boundary
+$\partial e$ gives
+\begin{equation}
+  \int_e \MM{w}\cdot(\nabla\times\MM{u})\times\MM{u}
+  + \frac{1}{2}\MM{w}\cdot\nabla(\MM{u}\cdot\MM{u}) \diff x = \int_e\nabla\times(\MM{u}\times\MM{w})\cdot\MM{u}\diff x - \int_{\partial e}\MM{n}\times(\MM{u}\times\MM{w})\cdot\MM{u} \diff S - \frac{1}{2}\int_e\nabla\cdot\MM{w}\MM{u}\cdot\MM{u}\diff x, \quad \forall \MM{w} \in \mathbb{V}^{HDiv}.
+\end{equation}
+Sunming over the domain and taking the upwind value of $\MM{u}$,
+denoted by $\tilde{\MM{u}}$, on the element boundaries gives
+\begin{equation}
+  \int_\Omega \MM{w}\cdot(\nabla\times\MM{u})\times\MM{u}
+  + \frac{1}{2}\MM{w}\cdot\nabla(\MM{u}\cdot\MM{u}) \diff x = \int_\Omega\nabla\times(\MM{u}\times\MM{w})\cdot\MM{u}\diff x - \int_{\Gamma}\jump{\MM{n}\times(\MM{u}\times\MM{w})}\cdot\tilde{\MM{u}} \diff S - \frac{1}{2}\int_\Omega\nabla\cdot\MM{w}\MM{u}\cdot\MM{u}\diff x, \quad \forall \MM{w} \in \mathbb{V}^{HDiv},
+\end{equation}
+where $\tilde{\MM{u}}$ denotes the upwind value of $\MM{u}$ on the facet.
 
 The schemes described above do not preserve monotonicity unlike the
 continuous equation, generating spurious over and undershoots. When
