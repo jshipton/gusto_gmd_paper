@@ -12,7 +12,7 @@ nx = 20
 mesh = PeriodicIntervalMesh(nx, L)
 x = SpatialCoordinate(mesh)[0]
 
-V = FunctionSpace(mesh, "Lagrange", 2)
+V = FunctionSpace(mesh, "Lagrange", 1)
 d = 0.05
 qn = Function(V).interpolate(exp(-((x-0.5*L)/d)**2))
 plot(qn)

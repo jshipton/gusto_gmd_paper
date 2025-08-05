@@ -1,0 +1,16 @@
+\documentclass[border = .2cm]{standalone}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\usepackage{tikz-cd}
+\tikzcdset{outer sep=0.8ex}
+
+\begin{document}
+
+\begin{tikzcd}
+  \mathbb{V}^{H^{1}}=H^1 \arrow{r}{d^1=\nabla}\arrow{d}{\pi_0} & \mathbb{V}^{HCurl}=H(\text{curl}) \arrow{r}{d^2=\nabla\times}\arrow{d}{\pi_1} & \mathbb{V}^{HDiv}=H(\text{div}) \arrow{r}{d^3=\nabla\cdot}\arrow{d}{\pi_2} & \mathbb{V}^{L^2}=L^2 \arrow{d}{\pi_3} \\
+  \mathbb{V}^{H^{1}}_h \arrow{r}{d^1=\nabla} & \mathbb{V}^{HCurl}_h \arrow{r}{d^2=\nabla\times} & \mathbb{V}^{HDiv}_h \arrow{r}{d^3=\nabla\cdot} & \mathbb{V}^{L^2}_h
+\end{tikzcd}
+ 
+\end{document}

@@ -145,25 +145,42 @@ TEXT
 \item many choices and research to be done - Colin says so in his Acta Numerica paper! - therefore flexible implementation is useful
 \end{itemize}
 
-Compatible finite elements provide a route to stable, consistent
-discretisations of the partial differential equations governing
-geophysical fluids which also have the correct wave propagation speeds
-and avoid spurious computational modes, even on non-uniform
-grids. These properties, along with conservation of mass and
-potentially other quantities such as energy and enstrophy, are
-considered essential for the accuracy of the dynamical core of weather
-and climate models \citep{staniforth2012horizontal}. Achieving these
-properties on a non-orthogonal grid is important because of parallel
-scaling**. While the required properties of the discretisation guide the
-choice of finite element spaces, there are many options for both the
-spatial and temporal discretisation and it is not clear which will be
-best for any particular problem. Gusto provides a flexible,
-extensible, easy-to-use toolkit of options for rapid prototyping of
-different spatial and temporal discretisations based on the compatible
-finite element framework applied to geophysical fluid dynamics
-equations relevant to numerical weather and climate prediction. In
-this paper we introduce Gusto to the community, summarise its current
-capabilities and outline our vision for future development.
+Compatible finite element methods provide a route to stable,
+consistent discretisations of the partial differential equations
+governing geophysical fluids \citep{cotter2023compatible}. They
+possess many of the desirable properties described by
+\citet{staniforth2012horizontal} as essential for the accuracy of the
+dynamical core of weather and climate models, such as conservation of
+mass (and potentially other quantities such as energy and enstrophy),
+correct wave propagation speeds and avoidance of spurious
+computational modes, even on non-orthogonal grids. Obtaining these
+properties on a non-orthogonal grid is important because weather and
+climate models achieve optimal performance on supercomputers by
+performing calculations concurrently, or in parallel, and orthogonal
+grids of a spherical manifold will necessarily have singular points
+that lead to a degredation in parallel scaling. An example of this is
+the commonly-used latitude-longitude grid where the singular points
+are the poles.
+
+% In practice, this means that the spatial domain is partitioned into
+% subdomains that are shared across the processors and data on the
+% boundaries of the subdomains needs to be shared between the
+% processors to compute a global solution. Current trends in
+% supercomputer architectures
+% are run on massivly parallel supercomputers that require the co
+% Spatial domain decomposition methods share the computation
+% across processors by
+
+While the required properties of the discretisation guide the choice
+of finite element spaces, there are many options for both the spatial
+and temporal discretisation and it is not clear which will be best for
+any particular problem. Gusto provides a flexible, extensible,
+easy-to-use toolkit of options for rapid prototyping of different
+spatial and temporal discretisations based on the compatible finite
+element framework applied to geophysical fluid dynamics equations
+relevant to numerical weather and climate prediction. In this paper we
+introduce Gusto to the community, summarise its current capabilities
+and outline our vision for future development.
 
 \subsection{Background}
 
@@ -182,12 +199,12 @@ basis functions and the continuity of these functions between the
 elements. The partial differential equations used in weather and
 climate modelling have multiple prognostic fields and it is not
 necessary, or indeed desirable, to use the same finite element
-function space for each field. Using different finite element function
-spaces for each field gives what is known as a mixed finite element
-discretisation.
+representation for each field. Using different finite element
+representations for each field gives what is known as a mixed finite
+element discretisation.
 
 `Compatible' or `mimetic' finite element discretisations are
-constructed by choosing the different finite element function spaces
+constructed by choosing the different finite element representations
 so that discrete versions of continuous vector calculus identities
 hold. These methods are useful in a variety of applications due to
 their ability to capture the underlying geometric structure of the
@@ -195,7 +212,7 @@ governing equations. In the context of geophysical fluid dynamics,
 these methods are useful because they represent geostrophic balance
 exactly which is crucial for reproducing accurate simulations of the
 large-scale flow. In addition to this, there is flexibility within the
-compatible finite element framework to choose function spaces that
+compatible finite element framework to choose representations that
 also give other advantages such as energy conservation, local mass
 conservation and discrete dispersion properties that lead to no
 spurious pressure modes.
@@ -203,49 +220,70 @@ spurious pressure modes.
 The compatible finite element spaces relevant for geophysical fluid
 dynamics are constructed from a discrete differential complex called
 the de Rham complex. This is a sequence of spaces with differential
-operators between them that map onto the kernal of the next operator
+operators between them that map onto the kernel of the next operator
 in the sequence. This is often summarised in a commutation diagram as
-in figures \ref{fig:2D de Rham} and \ref{fig:3D de Rham}. In these
+in figures \ref{fig:2DdeRham} and \ref{fig:3DdeRham}. In these
 diagrams the infinite dimensional spaces are along the top row and the
 $\pi_i$ denote projections into the corresponding finite dimensional
 subspace used in the compatible finite element discretisation. The
 differential operators are denoted by $\diff^k$ and these commute with
 the projections, meaning that $\diff^{k+1}\pi_k(\cdot) =
 \pi_{k+1}\diff^{k+1}(\cdot)$. This guarantees that, in 3D, $\nabla$
-maps onto the kernal of $\nabla\times$, ensuring
-$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernal
+maps onto the kernel of $\nabla\times$, ensuring
+$\nabla\times\nabla(\cdot)=0$, and $\nabla\times$ maps onto the kernel
 of $\nabla\cdot$, ensuring that $\nabla\cdot\nabla\times(\cdot)=0$;
-i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$ maps
-onto the kernal of $\nabla\cdot$, ensuring that
-$\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to write this de
-Rham complex such that instead we have that $\nabla$ maps onto the
-kernal of $\nabla^\perp$, ensuring that
+i.e. the spaces are compatible. In 2D we have that $\nabla^\perp$
+(the 2D curl operator) maps onto the kernel of $\nabla\cdot$,
+ensuring that $\nabla\cdot\nabla^\perp(\cdot)=0$. It is possible to
+write this de Rham complex such that instead $\nabla$ maps onto the
+kernel of $\nabla^\perp$, ensuring that
 $\nabla^\perp\cdot\nabla(\cdot)=0$, but the former is more useful in
 constructing discretisations for geophysical fluid dynamics since it
 enables schemes with local mass conservation \citep{}.
 
-\begin{figure}\label{fig:2D de Rham}
-  \centering{\includegraphics{de_rham_fig_2d.pdf}}
+\begin{figure}
+  \includegraphics{figures/de_rham_fig_2d.pdf}
+  \caption{De Rham complex for two dimensional spaces. The
+    interelement continuity of the functions decreases from left to
+    right, with functions in $\mathbb{V}^{H^1}$ being fully
+    continuous, those in $\mathbb{V}^{HDiv}$ having continuous normal
+    components and those in $\mathbb{V}^{L^2}$ being fully
+  discontinuous. The polynomial order also decreases from left to
+  right.}
+  \label{fig:2DdeRham}
 \end{figure}
 
-\begin{figure}\label{fig:3D de Rham}
-  \centering{\includegraphics{de_rham_fig_3d.pdf}}
+\begin{figure}
+  \includegraphics{figures/de_rham_fig_3d.pdf}
+  \caption{De Rham complex for three dimensional spaces. The
+    interelement continuity of the functions decreases from left to
+    right, with functions in $\mathbb{V}^{H^1}$ being fully
+    continuous, those in $\mathbb{V}^{HCurl}$ having continuous
+    tangential components, those in $\mathbb{V}^{HDiv}$ having
+    continuous normal components and those in $\mathbb{V}^{L^2}$ being
+    fully discontinuous. The polynomial order also decreases from left
+    to right.}
+  \label{fig:3DdeRham}
 \end{figure}
 
-Given that there are many promising avenues for research in the area
-of compatible finite element discretisations for geophysical fluid
-dynamics (**where to say what these are?), a flexible, extensible
-implementation of the methods is strongly desirable. This is
-especially required because, while it is feasible for someone to write
-a code implementing a specific finite element discretisation of a PDE,
-the code quickly becomes complicated and unsustainable when
-investigating different orders or families of finite elements, or
-different formulations of the equation. For geophysical fluid dynamics
-applications there are additional considerations relating to the
-geometry and types of waves present in the flow. For example, the
-scales of motion in the horizontal and vertical directions differ by
-several orders of magnitude. (also: boundaries, vertical staggering
-for theta space)
+Due to these promising properties, the next Met Office dynamical core
+will use the lowest order compatible finite element discretisation on
+the cubed sphere \citep{}. However, there are many important avenues
+for research and unanswered questions relating to, for example, the
+choice of grid and $\mathbb{V}^{HDiv}_h$; the design of transport
+schemes; stable and efficient timestepping algorithms; linear solver
+techniques and how to couple unresolved physics processes to the
+resolved dynamics. This type of research is difficult in operational
+models, which are generally designed to execute specific
+configurations very efficiently. The purpose of Gusto is to facilitate
+this research by providing an open source, flexible, extensible
+framework that provides the key components required when designing
+algorithms for a dynamical core. These include: finite element
+function spaces defined on the sphere (where the Piola transform is
+required to... **); meshes that have a columnar structure (because**),
+stable transport and diffusion schemes for variables with different
+interelement continuity,
+
 
 
 * In 3D the function spaces have a tensor product structure
@@ -260,21 +298,20 @@ the design features that enable our flexible implementation whereby
 different spatial and temporal discretisations can be applied to a
 range of different equation sets relevant for weather and climate
 modelling. In section \ref{sec: governing} we will outline three
-different equations commonly used for modelling geophysical fluids in
-order to demonstrate the similaries between the equations and justify
-the use of a unified codebase. The advantages of this unified approach
-become even clearer in section \ref{sec: FEM} where we present the
-compatible finite element discretisation of the different types of
-terms (e.g. pressure gradient, transport, diffusion) seen in section
-\ref{sec: governing}. In section \ref{sec: design} we describe the
-code structure of Gusto followed by a detailed example (section
+different equation sets commonly used for modelling geophysical fluids
+in order to demonstrate the similarities between the equation sets and
+justify the use of a unified codebase. The advantages of this unified
+approach become even clearer in section \ref{sec: FEM} where we
+present the compatible finite element discretisation of the different
+types of terms (e.g. pressure gradient, transport, diffusion) seen in
+section \ref{sec: governing}. In section \ref{sec: design} we describe
+the code structure of Gusto followed by a detailed example (section
 \ref{sec: FML}) of the Form Manipulation Language (FML) that
 facilitates symbolic manipulation of the finite element forms within
 our timestepping code. Section \ref{sec: results} contains a selection
 of numerical results that showcases the range of discretisations
-available within Gusto. **mention here new functionality facilitated
-by the flexibility of Gusto? We summarise our current status and
-future directions in section \ref{sec: summary}.
+available within Gusto. We summarise our current status and future
+directions in section \ref{sec: summary}.
 
 \section{Governing Equations}
 \label{sec: governing}
@@ -325,8 +362,8 @@ because they incorporate compressibility effects without the
 complexity of discretising the nonlinear pressure gradient terms that
 we shall see in the compressible Euler equations. We write these
 equations in terms of the prognostic variables $\MM{u}$, $b$ and $p$
-where $\MM{u}$ is the velocity field, $b$ is the fluid buoyancy and
-$p$ is pressure. In terms of these variables, the equations are:
+where $\MM{u}$ is the velocity field, $p$ is pressure and $b$ is the
+fluid buoyancy. In terms of these variables, the equations are:
 
 \begin{align}
   \pp{\MM{u}}{t} + 
@@ -337,14 +374,14 @@ $p$ is pressure. In terms of these variables, the equations are:
 \end{align}
 where $\MM{\Omega}$ is the rotation vector of the domain,
 $\hat{\MM{k}}$ is the unit vector pointing upwards and $c$ is the
-acoustic wave speed. The equations have been written in
-three-dimensional form but they can also be solved in a
-two-dimensional vertical slice domain described by $(x, z)$
-coordinates. In this case the velocity $\MM{u}$ can either be
-two-dimensional as well (if there is no Coriolis force), or fully
-three-dimensional but with each cartensian component only varying in
-the $x-z$ plane. In the latter case this is implemented using a
-three-dimensional computational domain that is only one element wide
+acoustic wave speed. The equations describe the motion of a
+three dimensional stratified fluid but can also be solved in a
+two dimensional vertical slice domain described by $(x, z)$
+coordinates. In this case, the velocity $\MM{u}$ can either be
+two dimensional as well (if there is no Coriolis force), or fully
+three dimensional but with each Cartesian component only varying in
+the $x-z$ plane. In the latter case, this is implemented using a
+three dimensional computational domain that is only one element wide
 in the $y$-direction and with periodic boundary conditions also in
 that direction.
 
@@ -368,13 +405,13 @@ state. In terms of these variables, the equations are:
 \end{align}
 where $\Pi$ is the Exner pressure, $p_0$ is a reference pressure, $R$
 is the gas constant, $c_p$ is the specific heat at constant pressure
-and $\kappa=R/c_p$. The equations have been written in
-three-dimensional form but they can also be solved in a
-two-dimensional vertical slice domain described by $(x, z)$
-coordinates. In this case the velocity $\MM{u}$ can either be two
+and $\kappa=R/c_p$. Again, these equations describe the motion of a
+three dimensional stratified fluid but can also be solved in a
+two dimensional vertical slice domain described by $(x, z)$
+coordinates. In this case, the velocity $\MM{u}$ can either be two
 dimensional as well (if there is no Coriolis force), or fully three
-dimensional but with each cartensian component only varying in the
-$x-z$ plane. In the latter case this is implemented using a three
+dimensional but with each Cartesian component only varying in the
+$x-z$ plane. In the latter case, this is implemented using a three
 dimensional computational domain that is only one element wide in the
 $y$-direction and with periodic boundary conditions also in that
 direction. \JScomment{I know this repeats what is said above but I
@@ -394,7 +431,7 @@ form is preferable so in Gusto we offer both forms of the equations.
 \section{Finite Element Discretisation}
 \label{sec: FEM}
 
-Comparing the equation sets given in the previous sections, we see
+Comparing the equation sets given in the previous section, we see
 several similarities. For example, the prognostic equation for the
 velocity always contains a nonlinear transport term, a term due to
 rotation and a `pressure' gradient term (in shallow water this is the
@@ -409,46 +446,54 @@ implemented in software so that it can be applied to any of the
 equation sets.
 
 The finite element discretisation is formed by choosing appropriate
-function spaces for the prognostic variables, multiplying by test
-functions from these function spaces and integrating over the
-domain. In addition to this, we integrate by parts when the
-inter-element continuity of the basis functions is not sufficient to
-define the result of applying the differential operator directly.
+representations, or function spaces, for the prognostic variables,
+multiplying by test functions from these function spaces and
+integrating over the domain. In addition to this, we integrate by
+parts when the interelement continuity of the basis functions is not
+sufficient to define the result of applying the differential operator
+directly. For the domains considered in this paper, the only boundary
+conditions we use are those of no normal flow, $\MM{u}\cdot\MM{n}=0$
+where $\MM{n}$ is the outward pointing normal to the boundary. This
+means that the test function for the velocity must also be chosen from
+a function space that has this boundary condition.
 
-In line with the theory outlined in section \ref{}, we always choose
-the velocity $\MM{u} \in \mathbb{V}_u$ with $\mathbb{V}_u \subset
-H(\text{div})$. The field whose gradient appears in the `pressure'
-gradient term is chosen to be in the space $\mathbb{V}_p$ with
-$\mathbb{V}_p \subset L_2$, or, in the case of the more complex
-nonlinear pressure gradient term for the compressible Euler equations,
-it is a function of a variable in this space. The compressible
-Boussinesq and compressible Euler equations have a third prognostic
-variable, either buoyancy or potential temperature, which is chosen to
-be in the space $\mathbb{V}_\theta$ which has degrees of freedom that
-are collocated with those of the vertical velocity, mimicking the
-Charney-Phillips staggering as discussed in **. These choices are
-governed by the properties required of discretisation of the
-linearised equation sets (as discussed in section ** and other
-refs). To solve the nonlinear equation sets we need to introduce
-stable and accurate discretisations of the transport terms and the
-nonlinear pressure gradient term in the compressible Euler equation
-set. In addition, some test cases require viscous and diffusive terms
-to generate converged solutions \ref{}. In the following subsections
-we illustrate a non-exhaustive (**probably!) selection of the options
-available in Gusto.
+In line with the theory outlined in the introduction, we always choose
+the velocity $\MM{u} \in \ring{\mathbb{V}}^{HDiv}$ with
+$\ring{\mathbb{V}}^{HDiv} \subset \mathbb{V}^{HDiv} \subset
+H(\text{div})$ and, as mentioned above, the $\ring{}$ indicates that
+the functions in $\ring{\mathbb{V}}^{HDiv}$ satisfy the no normal flow
+boundary conditions. The field whose gradient appears in the
+`pressure' gradient term is chosen to be in the space
+$\mathbb{V}^{L^2}$ with $\mathbb{V}^{L^2} \subset L_2$, or, in the
+case of the more complex nonlinear pressure gradient term for the
+compressible Euler equations, it is a function of a variable in this
+space. The compressible Boussinesq and compressible Euler equations
+have a third prognostic variable, either buoyancy or potential
+temperature, which is chosen to be in the space $\mathbb{V}_\theta$
+which has degrees of freedom that are collocated with those of the
+vertical velocity, mimicking the Charney-Phillips staggering as
+discussed in **. These choices are governed by the properties required
+of discretisation of the linearised equation sets (as discussed in
+section ** and other refs). To solve the nonlinear equation sets we
+need to introduce stable and accurate discretisations of the transport
+terms and the nonlinear pressure gradient term in the compressible
+Euler equation set. In addition, some test cases require viscous and
+diffusive terms to generate converged solutions \ref{}. In the
+following subsections we illustrate a non-exhaustive selection of the
+options available in Gusto.
 
 \subsection{Pressure gradient term}
 The pressure gradient term is discretised in a similar way for each
 equation set, with some additional considerations required for the
 nonlinear form of this term in the compressible Euler equations. Since
 the pressure (or depth, for shallow water) field is discretised in
-$\mathbb{V}_p \subset L_2$, meaning that it is discontinuous between
+$\mathbb{V}^{L^2} \subset L_2$, meaning that it is discontinuous between
 cells, the gradient is not defined globally and the term must be
 integrated by parts. In the linear case, using the notation for the
 compressible Boussinesq equations, the weak form is
 
 \begin{equation}
-\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x, \quad \forall \MM{w} \in \mathbb{V}_u,
+\int_\Omega\MM{w}\cdot\nabla p \diff x = -\int_\Omega\nabla\cdot\MM{w}p\diff x, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
 \end{equation}
 where $\Omega$ denotes the domain and there are no surface terms from
 the integration by parts because these vanish on interior element
@@ -458,14 +503,14 @@ boundary conditions. However, the pressure gradient term in the
 compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
 this introduces an additional complication. Integration by parts is
 still required since $\Pi$ is evaluated as a function of the density
-$\rho \in \mathbb{V}_\rho$ and $\theta \in \mathbb{V}_\theta$ so is
+$\rho \in \mathbb{V}^{L^2}$ and $\theta \in \mathbb{V}_\theta$ so is
 discontinuous between elements, but then integrating by parts
 transfers the differential operator to $\MM{w}\theta$ which is
-discontinuous in the horizontal. Following \ref{} we integrate by parts
+discontinuous in the horizontal direction. Following \ref{} we integrate by parts
 in each element $e$, giving
 
 \begin{equation}
-  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S,
+  c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
 \end{equation}
 where $\partial e$ denotes the element facets, $\MM{n}$ is the outward
 pointing normal to the facet and $\hat{q}$ denotes the value of a
@@ -473,30 +518,119 @@ variable $q$ on the facet, which for discontinuous variables does not
 have a unique definition. Summing over the domain gives
 
 \begin{equation}
-  c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S,
+  c_p\int_\Omega\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_\Omega\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\Gamma_v}\jump{\theta\MM{w}\cdot\MM{n}}\avg{\Pi} \diff S, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
 \end{equation}
 where $\Gamma_v$ denotes the vertical element facets, across which
-$\theta$ is discontinuous. Here we have chosen, as in \citet{}, to take
-the average value of $\Pi$ across the facets, $\avg{\Pi} =
-(\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each side of the
-facet. The brackets $\jump{q} = q^+-q^-$ denote the jump in $q$
-across the facet and the integral over the horizontal facets vanishes
-since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous across
-these facets so the jump is zero.
+$\theta$, and therefore $\Pi$, are discontinuous. Here we have chosen,
+as in \citet{}, to take the average value of $\Pi$ across the facets,
+$\avg{\Pi} = (\Pi^++\Pi^-)/2$, where the $+$ and $-$ indicate each
+side of the facet. The brackets $\jump{q} = q^+-q^-$ denote the jump
+in $q$ across the facet and the integral over the horizontal facets
+vanishes since both $\theta$ and $\MM{w}\cdot\MM{n}$ are continuous
+across these facets so the jump is zero.
 
 \subsection{Transport terms}
 Since the prognostic variables are discretised using different finite
-element function spaces $\mathbb{V}_u$, $\mathbb{V}_p$ and
+element function spaces $\mathbb{V}^{HDiv}$, $\mathbb{V}^{L^2}$ and
 $\mathbb{V}_\theta$, each with different continuity properties between
 the elements, the choice of stable transport discretisation is
-different for each prognostic variable. 
+different for each prognostic variable. The spatial order of the
+finite element spaces also imposes requirements on the choice of
+transport scheme. In particular, when the lowest order space
+$\mathbb{V}^{L2}$ is chosen to be piecewise constant, we need to use
+the recovered transport scheme described in
+\citet{bendall2019recovered} to achieve second order convergence
+overall. Here we describe the default transport schemes used in Gusto
+for the next-to-lowest order sequence of function spaces (i.e. where
+the lowest order space $\mathbb{V}^{L2}$ is chosen to be piecewise
+linear and discontinuous between elements) and refer the reader to
+\citet{bendall2019recovered} for details of the recovered schemes,
+which are also implemented in Gusto.
+
+\subsubsection{Transport of $\mathbb{V}^{L^2}$ fields}
+The shallow water and compressible Euler equation sets both contain a
+prognostic equation that is the continuity form of the transport
+equation for a variable represented by a function that is fully
+discontinuous between elements. This means that the divergence term is
+not well defined. A stable discretiation of this equation can be
+constructed by integrating that term by parts and taking the upwind
+values on the element facets. Using the compressible Euler equation
+notation, this gives, in each element $e$ with boundary $\partial e$:
+
+\begin{equation}
+  \int_e \phi\nabla\cdot(\rho\MM{u}) \diff x = -\int_e \nabla\phi \cdot (\rho\MM{u}) \diff x + \int_{\partial e} \phi\tilde{\rho}\MM{u}\cdot\MM{n} \diff S, \quad \forall \phi \in \mathbb{V}^{L^2}.
+\end{equation}
+Summing over the domain gives
+\begin{equation}
+  \int_\Omega \phi\nabla\cdot(\rho\MM{u}) \diff x = -\int_\Omega \nabla\phi \cdot (\rho\MM{u}) \diff x + \int_\Gamma \jump{\phi\MM{u}}\tilde{\rho} \diff S, \quad \forall \phi \in \mathbb{V}^{L^2},
+\end{equation}
+where $\Omega$ is the domain, $\Gamma$ denotes the element facets,
+$\tilde{\rho}$ denotes the value of $\rho$ on the upwind side of the
+facet and the brackets $\jump{q} = q^+-q^-$ denote the jump in $q$
+across the facet.
+
+\subsubsection{Transport of $\mathbb{V}_\theta$ fields}
+The compressible Boussinesq and compressible Euler equation sets both
+contain a prognostic equation that is the advective form of the
+transport equation for a variable that is represented by a function
+that is continuous in the vertical direction but discontinuous in the
+horizontal direction. This means that the gradient of the field
+required in the transport term is not well defined. A stable
+discretisation of this equation can be constructed by using a
+combination of the above upwinding strategy in the discontinuous
+horizontal direction and a streamline-upwind Petrov-Galerkin (SUPG)
+method in the continuous vertical dirction. The SUPG method replaces
+the finite element test function $\gamma$ with $\gamma + \tau
+\MM{u}\cdot\nabla\gamma$ where $\tau$ is a stabilisation parameter,
+although here we just require the vertical part of the gradient term. This
+has the effect of suppressing spurious oscillation associated with the
+continuous finite element approximation of the transport term. The
+stabilisation parameter $\tau$ depends on the spatial resolution and
+** and is set to be ** by default in Gusto, following \citet{}.
+
+We first integrate by parts in each column $C$ of the mesh, taking the
+upwind value of the field, indicated by a $\tilde{}$, on the vertical
+facets of the mesh, denoted by $\Gamma_v$. Using the notation of the
+compressible Euler equations, this gives
+
+\begin{align}
+  \int_C \gamma\MM{u}\cdot\nabla\theta\diff x &= -\int_C \nabla\cdot(\gamma\MM{u})\theta \diff x + \int_{\Gamma_v}\gamma \MM{u}\cdot\MM{n}\tilde{\theta}\diff S, \quad \forall \gamma \in \mathbb{V}_\theta, \\
+  &= \int_C \gamma\MM{u}\cdot\nabla\theta \diff x + \int_{\Gamma_v}\gamma \MM{u}\cdot\MM{n}(\tilde{\theta}-\theta_{int})\diff S, \quad \forall \gamma \in \mathbb{V}_\theta,
+\end{align}
+where we have integrated by parts a second time to move the
+differential operator from $\gamma$ back to $\theta$ since we need to
+replace the test function $\gamma$ with $\gamma+\tau w\gamma_z$, where
+$w=\MM{u}\cdot\hat{\MM{z}}$ is the vertical component of the
+velocity. This gives a second boundary term that now contains the
+value of $\theta$ in the interior of the column, denoted by
+$\theta_{int}$. Summing over the domain and applying the SUPG method
+in the vertical gives
+\begin{equation}
+  \int_C \gamma\MM{u}\cdot\nabla\theta\diff x =\int_\Omega(\gamma+\tau w\gamma_z)\MM{u}\cdot\nabla\theta \diff x + \int_{\Gamma_v}\jump{(\gamma+\tau w\gamma_z) \MM{u}}\tilde{\theta}-\jump{(\gamma+\tau w\gamma_z) \MM{u}\theta}\diff S, \quad \forall \gamma \in \mathbb{V}_\theta.
+\end{equation}
+Note that, as explained in \citet{Colin}, the test function should
+also be replaced in the time derivative term for consistency **
+  
+
+\subsubsection{Transport of $\mathbb{V}^{HDiv}$ fields}
+
+
+
+
+These schemes do not preserve the monotonicity of the continuous
+equation, generating spurious over and undershoots. When monotonicity
+is important, for example, to avoid generating spurious and unphysical
+negative values of moisture variables, we can apply a limiter as part
+of the transport scheme.
+
+\JScomment{I think that we should at least mention that we can do horizonal and vertical splitting for stability - maybe don't need to write out all of the forms though!}
 
 
 \subsection{Viscous and diffusive terms}
 
 For the simulations presented here we do not require viscous or
 diffusive terms for stability, but sometimes they are required to
-produce converged solutions, ie. so that refining the grid does not
+produce converged solutions so that refining the grid does not
 lead to smaller and smaller scale motions. Here we present the symmetric
 interior penalty discretisation method used for these terms in Gusto.
 
@@ -520,7 +654,7 @@ manifolds (**ref), extruded meshes (**ref) and the PETSc library
 solver options (**ref).
 
 \begin{figure}
-  \centering{\includegraphics[width=0.8\textwidth]{gusto_schematic.png}}
+  \centering{\includegraphics[width=0.8\textwidth]{figures/gusto_schematic.png}}
 \end{figure}
 
 \JScomment{This paragraph should refer to the schematic and explain
@@ -546,13 +680,13 @@ and apply a time discretisation separately to each type of term. For
 example, the transport and forcing terms might be solved for
 separately, such as in **, which enables explicit transport schemes to
 be applied to each field. ** something about SIQN structure. Terms
-related to the physics are solved for in the appropriate part of the
-iteration loop, with physics processes that occur on `fast' timescales
-evaluated more frequently and `slower' physics processes evaluated
-just once at the end of the timestep. The choice of where to evaluate
-the physics processes in the iteration is also based on the
-computational cost and the best way to do this is still an open
-research question (**ref).
+involved in physics parameterisations are evaluated in the appropriate
+part of the iteration loop, with physics processes that occur on
+`fast' timescales evaluated more frequently and `slower' physics
+processes evaluated just once at the end of the timestep. The choice
+of where to evaluate the physics processes in the iteration is also
+based on the computational cost and the best way to do this is still
+an open research question (**ref).
 
 \begin{itemize}
 \item what about initialisation and diagnostics?
@@ -585,7 +719,7 @@ equation class. The timestepping methods are then able to reason about
 which manipulations to apply to which forms by applying filters that
 check for the presence of a label and, optionally, its value. Here we
 will describe the objects required to define labels and filters before
-illustrating this with a simple example(s?).
+illustrating this with some simple examples.
 
 The finite element discretisation of each term in an equation is
 represented in Firedrake by a UFL form object. FML defines a
@@ -612,7 +746,7 @@ have a certain label, such as \texttt{transport}, drop terms that do
 not have this label and multiply those that do by the timestep. We
 shall demonstrate this in the following example.
 
-\subsection{Example}
+\subsection{Example 1: IMEX-Euler applied to the 1d advection diffuction equation}
 
 We demonstrate the use of FML by applying a split timestepping scheme
 to the 1D advection diffusion equation
@@ -636,18 +770,18 @@ define and label the weak form of the residual, 2) build solvers for
 the explicit and implicit systems, 3) run the timestepping loop. Since
 the intention of this example is to demonstrate FML rather than the
 compatible finite element discretisation, we use the space of piecewise
-quadratic continuous Lagrange polynomials, denoted by $P_2$, for the
+linear continuous Lagrange polynomials, denoted by $P_1$, for the
 finite element discretisation as this greatly simplifies the
 forms. The finite element discretisation of equation
 \ref{eq:1dadvdiff} is then
 \begin{equation}\label{eq:weak-advdiff}
-  \int_\Omega vq_t \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0, \quad \forall v \in P_2,
+  \int_\Omega vq_t \diff x + c \int_\Omega v q_x \diff x + \kappa \int_\Omega v_x q_x \diff x = 0, \quad \forall v \in P_1,
 \end{equation}
-where $v\in P_2$ is the test function and the diffusion term has been
+where $v\in P_1$ is the test function and the diffusion term has been
 integrated by parts.
 
 Listing \ref{lst:define-residual} presents the code to define this
-spatial discretisation of the residual with the $P_2$ function space
+spatial discretisation of the residual with the $P_1$ function space
 denoted by \texttt{V}. Here we omit the code that sets up the mesh,
 function spaces and parameters $c$ and $\kappa$, although this can be
 found in the supplementary materials. The first two lines define the
@@ -734,20 +868,20 @@ This simple example demonstrates the power of manipulating the terms
 in the equation based on the presence or absence of certain
 labels. The full strength of FML becomes even more apparant when we
 exploit information stored in the label value. We use this in two
-important situations in Gusto. The first situation is when we require
-a linearisation of the residual, for example when applying a Newton
-method to the full nonlinear equations \JScomment{should we clarify
-  that we mean a specific linearisation because Firedrake can do
-  Newton methods without FML?}, or to test a new algorithm or model
-setup on linear equations. The second situation is when we need to
-evaluate source terms that come from physics schemes. We can
-illustrate both situations with simple extensions to the above
-example.
+important situations in Gusto. The first situation is when we need to
+evaluate source terms that come from physics schemes. The second
+situation is when we require a linearisation of the residual, for
+example when applying a quasi-Newton method to solve the full
+nonlinear equations or when testing a new algorithm on the linear
+equations. We illustrate both situations in the following two
+examples.
 
-First consider the 1D viscous Burgers' equation
-\begin{equation}
-  u_t + uu_x + \nu u_{xx} = 0.
-\end{equation}
+\subsection{Example 2: Sequential splitting for an idealised chemistry-transport problem}
+
+
+
+\subsection{Example 3: Quasi-Newton }
+
 
 
 \section{Results}
