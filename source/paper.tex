@@ -613,18 +613,31 @@ also be replaced in the time derivative term for consistency **
   
 
 \subsubsection{Transport of $\mathbb{V}^{HDiv}$ fields}
+All three of the equation sets described in section \ref{} include a
+prognostic equation for the velocity field
+$\MM{u}\in\mathbb{V}^{HDiv}$ that contains a nonlinear transport term
+$\MM{u}\cdot\nabla\MM{u}$. This term can be discretised directly using
+a vector version of the scheme in section ** or, as in \citet{} it can
+be replaced by the vector invariant form and then discretised. In
+Gusto we offer both options and we present the vector invariant scheme
+below.
 
 
 
+The schemes described above do not preserve monotonicity unlike the
+continuous equation, generating spurious over and undershoots. When
+monotonicity is important, for example, to avoid generating spurious
+and unphysical negative values of moisture variables, we can apply a
+limiter as part of the transport scheme. These limiters are described
+in \ref{}.
 
-These schemes do not preserve the monotonicity of the continuous
-equation, generating spurious over and undershoots. When monotonicity
-is important, for example, to avoid generating spurious and unphysical
-negative values of moisture variables, we can apply a limiter as part
-of the transport scheme.
-
-\JScomment{I think that we should at least mention that we can do horizonal and vertical splitting for stability - maybe don't need to write out all of the forms though!}
-
+It is common in weather and climate models for the horizontal and
+vertical directions to be discretised differently due to the different
+scales of motion in each direction. Typically the vertical part of the
+transport term is treated implicitly so that the timestep is not
+restricted by the vertical Courant number. We provide the option to
+split the transport terms into horizontal and vertical components, as
+described in \ref{}.
 
 \subsection{Viscous and diffusive terms}
 
