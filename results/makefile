@@ -11,17 +11,14 @@ galewsky_jet:
 	mpiexec -n 4 python3 test_case_scripts/galewsky_jet.py \
 		--ncells_per_edge 100 --dt 150.0 --dumpfreq 3456
 
-williamson_5:
-	mpiexec -n 4 python3 test_case_scripts/williamson_5.py \
-		--ncells_per_edge 64 --dt 300.0 --dumpfreq 1440 --semi_implicit
-
-	mpiexec -n 4 python3 test_case_scripts/williamson_5.py \
-		--ncells_per_edge 64 --dt 50.0 --dumpfreq 8640
+baroclinic_wave:
+	mpiexec -n 72 python3 test_case_scripts/baroclinic_wave.py \
+		--ncells_per_edge 32
 
 straka:
 	mpiexec -n 4 python3 test_case_scripts/straka_degree_0.py \
 		--nlayers 128 --dt 0.5 --dumpfreq 450 --dirname straka_degree_0
-	
+
 	mpiexec -n 4 python3 test_case_scripts/straka_degree_1.py \
 		--nlayers 64 --dt 0.5 --dumpfreq 450 --dirname straka_degree_1
 

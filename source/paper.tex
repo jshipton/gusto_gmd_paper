@@ -889,11 +889,11 @@ nonlinear equations or when testing a new algorithm on the linear
 equations. We illustrate both situations in the following two
 examples.
 
-\subsection{Example 2: Sequential splitting for an idealised chemistry-transport problem}
+\subsection{Example 2: Sequential splitting for an idealised chemistry-transport problem} \label{sec:seq splitting}
 
 
 
-\subsection{Example 3: Quasi-Newton }
+\subsection{Example 3: Quasi-Newton } \label{sec:siqn}
 
 
 
@@ -905,25 +905,25 @@ HDiv element families, order of finite element spaces, different
 spatial discretisation options and timestepping schemes.
 As these options can be combined in so many ways, it is only possible to present results from a tiny fraction of the configurations.
 We have chosen to use a selection from the hierarchy of standard test cases that span the stages of development of dynamical cores.
-Although we do include some results here that demonstrate the numerical properties of certain configurations, the purpose of this section is not to provide a rigorous verification of any particular choice of discretisation. Such results are demonstrated elsewhere, for instance \cite{bendall2020compatible} or \cite{hartney2025exploring}.
+Although we do include some results here that demonstrate the numerical properties of certain configurations, the purpose of this section is not to provide a rigorous verification of any particular choice of discretisation. Such results are demonstrated elsewhere, for instance \citet{bendall2020compatible} or \citet{hartney2025exploring}.
 The settings used for each result from this section are detailed in Appendix \ref{sec:appendix}.
 
 \subsection{Terminator Toy chemistry}
-The first results use the ``Terminator Toy'' test of \cite{lauritzen2015terminator}, which involves the transport of two coupled tracers $X$ and $X_2$ on the surface of a sphere.
+The first results use the ``Terminator Toy'' test of \citet{lauritzen2015terminator}, which involves the transport of two coupled tracers $X$ and $X_2$ on the surface of a sphere.
 The chemicals interact such that the sum $m_T=m_X+2m_{X_2}$ should be preserved, where $m_X$ and $m_{X_2}$ are the mixing ratios of the individual chemicals.
 When positivity or monotonicity limiters are applied to the numerical transport scheme, this may break the correlation between the two species which will be highlighted by this test.
 This test is also a demonstration of simple ``physics-dynamics coupling'', as the conversion term between the species can be handled separately from the transport terms. \\
 \\
-For this test, we use the DG upwind scheme described in Section \ref{sec:transport} to transport the species on an icosahedral sphere mesh, and apply the vertex-based limiter of \cite{kuzmin2010vertex}.
-The term describing the chemical reaction is separated from the transport term using a simple sequential splitting, \textcolor{red}{as described in Section \?}. \\
+For this test, we use the DG upwind scheme described in Section \ref{sec:transport} to transport the species on an icosahedral sphere mesh, and apply the vertex-based limiter of \citet{kuzmin2010vertex}.
+The term describing the chemical reaction is separated from the transport term using a simple sequential splitting, as described in Section \ref{sec:seq splitting}. \\
 \\
 Figure \ref{fig:terminator} shows the mixing ratios of the two individual species at the initial time and following a single rotation around the sphere by a deformational flow.
 The change in the sum of the species is also displayed, with differences from zero remaining close to machine precision, which demonstrates that this transport scheme does preserve the correlation between the tracers. 
 
 \begin{figure}[htp!]
 \centering
-\includegraphics[width=0.9\textwidth]{terminator_toy.png}
-\caption{The evolution of the chemical species from the ``Terminator Toy'' test of \cite{lauritzen2015terminator}.
+\includegraphics[width=0.9\textwidth]{figures/terminator_toy.png}
+\caption{The evolution of the chemical species from the ``Terminator Toy'' test of \citet{lauritzen2015terminator}.
 The fields at the initial time are shown on the left, and at the final time ($t=12$ days) which follows a single revolution around the sphere by a deformational flow.
 The bottom row shows the change in the total $m_T=m_X+2m_{X_2}$ from the initial time, which remains very close to zero.}
 \label{fig:terminator}
@@ -937,31 +937,31 @@ the unstable barotropic jet described in
 \citet{galewsky2004initial}. \\
 \\
 Here we present two sets of convergence results for a variety of configurations measured using the steady state geostrophic balanced flow (test case 2 from
-\citet{williamson1992standard}) with the linear shallow water equations. \JScomment{I think Hilary should also be cited here as she uses the linear version}
+\citet{williamson1992standard}) with the linear shallow water equations, as used in \citet{weller2012computational}.
 Figure \ref{fig:sw_convergence} shows the spatial convergence for a number of choices of finite element for the prognostic variables, using a Trapezium Rule discretisation (also known as Crank-Nicolson).
 It also shows the temporal convergence for a range of timestepping schemes using the 1st order Raviart-Thomas elements on quadrilateral cells. 
 \textcolor{red}{Once the test has been completed, come back to edit what we say here about convergence!} \\
 \\
 We show results from the unstable jet of \citet{galewsky2004initial} in Figure \ref{fig:galewsky}, using the non-linear shallow water equations.
-These results use the Semi-Implicit Quasi-Newton timestepper described in Section \ref{???}, and compare the RT elements on a cubed-sphere mesh with the BDM elements on an icosahedral-sphere. \JScomment{both first order?}
+These results use the Semi-Implicit Quasi-Newton timestepper described in Section \ref{sec:siqn}, and compare the first-order RT elements on a cubed-sphere mesh with the first-order BDM elements on an icosahedral-sphere.
 
 \begin{figure}[htp!]
 \centering
 \includegraphics[width=0.9\textwidth]{}
-\caption{Convergence results using the linear shallow water equations with the steady geostrophic flow of \cite{williamson1992standard}.
+\caption{Convergence results using the linear shallow water equations with the steady geostrophic flow of \citet{williamson1992standard}.
 (Left) the spatial convergence of a number of orders and families of finite element, all using the same timestepper. (Right) the temporal convergence of different timesteppers, all using the same spatial discretisation.}
 \label{fig:sw_convergence}
 \end{figure}
 
 \begin{figure}[htp!]
 \centering
-\includegraphics[width=0.9\textwidth]{galewsky_jet.png}
+\includegraphics[width=0.9\textwidth]{figures/galewsky_jet.png}
 \caption{A view of the relative vorticity around the North pole at day 6 of a simulation of the Galewsky jet test case. (Left) the RT1 elements on a cubed-sphere mesh. (Right) the BDM1 elements on an icosahedral-sphere mesh. Both cases use the Semi-Implicit Quasi-Newton timestepper. The edges of the panels of the cube and icosahedron are highlighted.}
 \label{fig:galewsky}
 \end{figure}
 
 \subsection{Compressible Euler equations}
-We have also implemented many of the standard test cases for the non-hydrostatic compressible Euler equations that are used in modern NWP \JScomment{I think I've been saying `weather and climate' instead of NWP - happy to change but this is a note to remind us to be consistent!'} models.
+We have also implemented many of the standard test cases for the non-hydrostatic compressible Euler equations that are used in modern weather and climate models.
 In this section we show results from a small selection of these, which demonstrate different domains in which these methods work.
 Throughout this section we use the Semi-Implicit Quasi-Newton timestepper.
  \\
@@ -972,32 +972,33 @@ The lowest-order methods require the transport and diffusion terms to use the ``
 \\
 \begin{figure}[htp!]
 \centering
-\includegraphics[width=0.8\textwidth]{straka.png}
-\caption{The potential temperature field after 900 s from the falling density current test of \cite{straka1993numerical}. (Top) with the lowest-order finite elements, and (bottom) with the next-to-lowest-order finite elements.
+\includegraphics[width=0.8\textwidth]{figures/straka.png}
+\caption{The potential temperature field after 900 s from the falling density current test of \citet{straka1993numerical}. (Top) with the lowest-order finite elements, and (bottom) with the next-to-lowest-order finite elements.
 }
 \label{fig:straka}
 \end{figure}
 \\
 To demonstrate the use of moist physics parametrisations, we use a moist three-dimensional rising thermal simulation in an extruded doubly-periodic plane.
-The initial conditions and moisture parametrisation are those of \citet{bendall2020compatible}, which is an extension of the dry case of \citet{kelly2012continuous} and \citet{melvin2019mixed}.
+The initial conditions are those of \citet{bendall2020compatible}, which is an extension of the dry case of \citet{kelly2012continuous} and \citet{melvin2019mixed}.
 A cross-sections of the final equivalent potential temperature field is shown in Figure \ref{fig:3d_bubble}.
 As in the two-dimensional test of \citet{bryan2002benchmark}, the atmosphere is saturated and cloudy everywhere, so that the moist processes are active in the whole domain.
+A simple saturation adjustment parametrisation is used, with the details described in \citet{bendall2020compatible}.
 \\
 \begin{figure}[htp!]
 \centering
-\includegraphics[width=0.48\textwidth]{moist_3d_bubble.png}
+\includegraphics[width=0.48\textwidth]{figures/moist_3d_bubble.png}
 \caption{Vertical cross-section of the final equivalent potential temperature field from the three-dimensional moist rising thermal test.
 }
 \label{fig:3d_bubble}
 \end{figure}
 \\
 Our final test case is the deep baroclinic wave of \citet{ullrich2014proposed} on the sphere.
-An initial state in thermal wind balance is perturbed to produce a mid-latitude baroclinic instability, providing a flow that is typical of those found in Numerical Weather Prediction \JScomment{not sure I approve of these capitals...}.
+An initial state in thermal wind balance is perturbed to produce a mid-latitude baroclinic instability, providing a flow that is typical of those found in numerical weather prediction.
 The surface pressure and temperature fields after 10 days are shown in Figure \ref{fig:baroclinic}, which compare well with those in \citet{melvin2024mixed} and demonstrate that our methods can replicate results from the literature.
 
 \begin{figure}[htp!]
 \centering
-\includegraphics[width=0.9\textwidth]{galewsky_jet.png}
+\includegraphics[width=0.9\textwidth]{figures/baroclinic_wave_lonlat.png}
 \caption{The surface pressure and temperature after 10 days of a deep baroclinic wave simulation on the cubed-sphere.}
 \label{fig:baroclinic}
 \end{figure}
@@ -1029,6 +1030,26 @@ TEXT
 
 \appendix
 \section{Test Case Settings}  \label{sec:appendix}  %% Appendix A
+Here we summarise the configuration details for the test cases used to produce the results in Section \ref{sec: results}.
+
+\begin{sidewaystable*}[tbp!]
+\caption{Details of the configurations used for the test cases in Section \ref{sec: results}.}
+\begin{tabular}{l|ccccccc}
+\tophline
+Test Case & Equation Set & Timestepper & Finite Elements & \begin{tabular}{@{}c@{}}Horizontal \\ Mesh\end{tabular} & \begin{tabular}{@{}c@{}}Number \\ of  \ Layers\end{tabular} & Time step & Final Time \\
+\middlehline
+Terminator Toy & \begin{tabular}{@{}c@{}}Tracer transport \\ with chemistry\end{tabular} & Sequential Splitting & BDM1 & I16 & None & 450 s & 12 days \\
+Steady Geostrophic Flow & Linear Shallow Water & Multiple & BDM1 & I32 & None & ?? & 1 day \\
+Steady Geostrophic Flow & Linear Shallow Water & Trapezium Rule & Multiple & ?? & None & ?? & 1 day \\
+Unstable Jet & Shallow Water & SIQN & BDM1 and RT1 & I64 and C100 & None & 150 s & 6 days \\
+Density Current & Compressible Euler & SIQN & RT0 and RT1 & 100 m and 200 m & 64 and 32 & 1 s & 900 s \\
+Rising Thermal & Moist Compressible Euler & SIQN & RT1 & $\Delta x = \Delta y = \frac{10}{81}$ km & 81 & 2 s & 1000 s \\
+Baroclinic Wave & Compressible Euler & SIQN & RT1 & C32 & 15 & 900 s & 10 days
+\bottomhline
+\end{tabular}
+\belowtable{Notation: RT$x$ refers to the de Rham complex that uses the Raviart-Thomas elements on quadrilateral cells for the HDiv function space, and results in an $x$-th order polynomials for the $L_2$ space. Similarly, BDM$x$ refers to the Brezzi-Douglas-Marini de Rham complex on triangular cells.
+SIQN denotes the Semi-Implicit Quasi-Newton timestepper described in Section \ref{sec:siqn}. When describing horizontal meshes of the sphere, I$y$ and C$y$ correspond to icosehedral-sphere and cubed-sphere meshes with $y$ cells per edge of the icosahedron or cube panel.}% Table Footnotes
+\end{sidewaystable*}
 
 \subsection{}     %% Appendix A1, A2, etc.
 
