@@ -756,7 +756,7 @@ The aim of this section is to present a selection of results that
 showcase the tools available in Gusto, such as the choice of grids,
 HDiv element families, order of finite element spaces, different
 spatial discretisation options and timestepping schemes.
-As these options can be combined in so many ways, it is only possible to present results from a tiny fraction configurations.
+As these options can be combined in so many ways, it is only possible to present results from a tiny fraction of the configurations.
 We have chosen to use a selection from the hierarchy of standard test cases that span the stages of development of dynamical cores.
 Although we do include some results here that demonstrate the numerical properties of certain configurations, the purpose of this section is not to provide a rigorous verification of any particular choice of discretisation. Such results are demonstrated elsewhere, for instance \cite{bendall2020compatible} or \cite{hartney2025exploring}.
 The settings used for each result from this section are detailed in Appendix \ref{sec:appendix}.
@@ -768,7 +768,7 @@ When positivity or monotonicity limiters are applied to the numerical transport 
 This test is also a demonstration of simple ``physics-dynamics coupling'', as the conversion term between the species can be handled separately from the transport terms. \\
 \\
 For this test, we use the DG upwind scheme described in Section \ref{sec:transport} to transport the species on an icosahedral sphere mesh, and apply the vertex-based limiter of \cite{kuzmin2010vertex}.
-The term described chemical reaction is separated from the using a simple sequential splitting, \textcolor{red}{as described in Section \?}. \\
+The term describing the chemical reaction is separated from the transport term using a simple sequential splitting, \textcolor{red}{as described in Section \?}. \\
 \\
 Figure \ref{fig:terminator} shows the mixing ratios of the two individual species at the initial time and following a single rotation around the sphere by a deformational flow.
 The change in the sum of the species is also displayed, with differences from zero remaining close to machine precision, which demonstrates that this transport scheme does preserve the correlation between the tracers. 
@@ -790,13 +790,13 @@ the unstable barotropic jet described in
 \citet{galewsky2004initial}. \\
 \\
 Here we present two sets of convergence results for a variety of configurations measured using the steady state geostrophic balanced flow (test case 2 from
-\citet{williamson1992standard}) with the linear shallow water equations.
+\citet{williamson1992standard}) with the linear shallow water equations. \JScomment{I think Hilary should also be cited here as she uses the linear version}
 Figure \ref{fig:sw_convergence} shows the spatial convergence for a number of choices of finite element for the prognostic variables, using a Trapezium Rule discretisation (also known as Crank-Nicolson).
 It also shows the temporal convergence for a range of timestepping schemes using the 1st order Raviart-Thomas elements on quadrilateral cells. 
 \textcolor{red}{Once the test has been completed, come back to edit what we say here about convergence!} \\
 \\
-We show results from the unstable jet of \citep{galewsky2004initial} in Figure \ref{fig:galewsky}, using the non-linear shallow water equations.
-These results use the Semi-Implicit Quasi-Newton timestepper described in Section \ref{???}, and compare the RT elements on a cubed-sphere mesh with the BDM elements on an icosahedral-sphere.
+We show results from the unstable jet of \citet{galewsky2004initial} in Figure \ref{fig:galewsky}, using the non-linear shallow water equations.
+These results use the Semi-Implicit Quasi-Newton timestepper described in Section \ref{???}, and compare the RT elements on a cubed-sphere mesh with the BDM elements on an icosahedral-sphere. \JScomment{both first order?}
 
 \begin{figure}[htp!]
 \centering
@@ -814,12 +814,12 @@ These results use the Semi-Implicit Quasi-Newton timestepper described in Sectio
 \end{figure}
 
 \subsection{Compressible Euler equations}
-We have also implemented many of the standard test cases for the non-hydrostatic compressible Euler equations that are used in modern NWP models.
+We have also implemented many of the standard test cases for the non-hydrostatic compressible Euler equations that are used in modern NWP \JScomment{I think I've been saying `weather and climate' instead of NWP - happy to change but this is a note to remind us to be consistent!'} models.
 In this section we show results from a small selection of these, which demonstrate different domains in which these methods work.
 Throughout this section we use the Semi-Implicit Quasi-Newton timestepper.
  \\
 \\
-The first test is the falling density current of \cite{straka1993numerical} in a vertical slice. This test involves the addition of diffusion to both the potential temperature and velocity equations.
+The first test is the falling density current of \citet{straka1993numerical} in a vertical slice. This test involves the addition of diffusion to both the potential temperature and velocity equations.
 Figure \ref{fig:straka} shows the final potential temperature equation for simulations using the lowest-order and next-to-lowest order finite elements on the vertical slice.
 The lowest-order methods require the transport and diffusion terms to use the ``recovered'' scheme of \citet{bendall2019recovered} to attain second-order accuracy. 
 \\
@@ -832,9 +832,9 @@ The lowest-order methods require the transport and diffusion terms to use the ``
 \end{figure}
 \\
 To demonstrate the use of moist physics parametrisations, we use a moist three-dimensional rising thermal simulation in an extruded doubly-periodic plane.
-The initial conditions and moisture parametrisation are those of \citep{bendall2020compatible}, which is an extension of the dry case of \citep{kelly2012continuous} and \citep{melvin2019mixed}.
+The initial conditions and moisture parametrisation are those of \citet{bendall2020compatible}, which is an extension of the dry case of \citet{kelly2012continuous} and \citet{melvin2019mixed}.
 A cross-sections of the final equivalent potential temperature field is shown in Figure \ref{fig:3d_bubble}.
-As in the two-dimensional test of \citep{bryan2002benchmark}, the atmosphere is saturated and cloudy everywhere, so that the moist processes are active in the whole domain.
+As in the two-dimensional test of \citet{bryan2002benchmark}, the atmosphere is saturated and cloudy everywhere, so that the moist processes are active in the whole domain.
 \\
 \begin{figure}[htp!]
 \centering
@@ -844,9 +844,9 @@ As in the two-dimensional test of \citep{bryan2002benchmark}, the atmosphere is 
 \label{fig:3d_bubble}
 \end{figure}
 \\
-Our final test case is the deep baroclinic wave of \citep{ullrich2014proposed} on the sphere.
-An initial state in thermal wind balance is perturbed to produce a mid-latitude baroclinic instability, providing a flow that is typical of those found in Numerical Weather Prediction.
-The surface pressure and temperature fields after 10 days are shown in Figure \ref{fig:baroclinic}, which compare well with those in \citep{melvin2024mixed} and demonstrate that our methods can replicate results from the literature.
+Our final test case is the deep baroclinic wave of \citet{ullrich2014proposed} on the sphere.
+An initial state in thermal wind balance is perturbed to produce a mid-latitude baroclinic instability, providing a flow that is typical of those found in Numerical Weather Prediction \JScomment{not sure I approve of these capitals...}.
+The surface pressure and temperature fields after 10 days are shown in Figure \ref{fig:baroclinic}, which compare well with those in \citet{melvin2024mixed} and demonstrate that our methods can replicate results from the literature.
 
 \begin{figure}[htp!]
 \centering
