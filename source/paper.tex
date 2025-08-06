@@ -678,13 +678,29 @@ terms into horizontal and vertical components, as described in
 \label{sec: diffusion}
 For the simulations presented here we do not require viscous or
 diffusive terms for stability, but sometimes they are required to
-produce converged solutions so that refining the grid does not
-lead to smaller and smaller scale motions. Here we present the symmetric
-interior penalty discretisation method used for these terms in Gusto.
+produce converged solutions so that refining the grid does not lead to
+smaller and smaller scale motions. Viscous or diffusive terms involve
+the laplacian of the prognostic field, which in all cases is not
+globally defined for the finite element function spaces we use in this
+paper. Here we present the symmetric interior penalty discretisation
+method \citep{cockburn2007note} applied to the viscous term that we
+add to the prognostic velocity equation when required. This method can
+be adapted to apply to scalar fields when required.
+
+First we multiply the term $\nu\nabla^2\MM{u}$ by a test function
+$\MM{w}\in\mathbb{V}^{HDiv}$, where $\nu$ is the viscosity
+coefficient, assumed to be constant. Integrating by parts introduces
+surface terms which, after applying the symmetric interior penalty
+method \citep{cockburn2007note} become:
 
 \begin{equation}
-  \nu\int_\Omega\MM{w}\cdot\nabla^2\MM{u}\diff x = \nu\int_\Omega\nabla\MM{w}:\nabla\MM{u}\diff x
+ \nu\int_\Omega\nabla\MM{w}:\nabla\MM{u}\diff x - \int_\Gamma\jump{\MM{v}\otimes\MM{n}}:\{\nabla\MM{u}\}\diff S - \int_\Gamma\jump{\MM{u}\otimes\MM{n}}:\{\nabla\MM{v}\}\diff S + \mu\int_\Gamma \jump{\MM{u}\otimes\MM{n}}:\jump{\MM{v}\otimes\MM{n}}\diff S,
 \end{equation}
+where $:$ denotes double contraction, $\avg{q} = (q^++q^-)/2$ is the
+average value of $q$ across the facet, $\jump{q} = q^+-q^-$ is the
+jump in $q$ across the facet (where in both cases the $+$ and $-$
+indicate each side of the facet), and $\mu$ is the penalty parameter,
+typically chosen to be $10/h$ where $h$ is a measure of the gridsize.
 
 \section{Software Design}
 \label{sec: design}
