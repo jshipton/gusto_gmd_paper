@@ -508,9 +508,9 @@ compressible Boussinesq equations, the weak form is
 \end{equation}
 where $\Omega$ denotes the domain and there are no surface terms from
 the integration by parts because these vanish on interior element
-boundaries (since the normal component of $\MM{w}$ is continuous across
-element facets) and on exterior boundaries we set no normal flow
-boundary conditions. However, the pressure gradient term in the
+boundaries (since the normal component of $\MM{w}$ is continuous
+across element facets) and on exterior boundaries we set no normal
+flow boundary conditions. However, the pressure gradient term in the
 compressible Euler equations, $c_p\theta\nabla\Pi$, is nonlinear and
 this introduces an additional complication. Integration by parts is
 still required since $\Pi$ is evaluated as a function of the density
@@ -518,8 +518,8 @@ $\rho \in \mathbb{V}^{L^2}$ and $\theta \in \mathbb{V}_\theta$ so is
 discontinuous between elements, but then integrating by parts
 transfers the differential operator to $\MM{w}\theta$ which is
 discontinuous in the horizontal direction. Following
-\citet{natale2016compatible} we integrate by parts in each element $e$,
-giving
+\citet{natale2016compatible} we integrate by parts in each element
+$e$, giving
 
 \begin{equation}
   c_p\int_e\MM{w}\cdot\theta\nabla\Pi\diff x = -c_p\int_e\nabla\cdot(\MM{w}\theta)\Pi\diff x + c_p\int_{\partial e}\hat{\theta}\MM{w}\cdot\MM{n}\hat{\Pi}\diff S, \quad \forall \MM{w} \in \ring{\mathbb{V}}^{HDiv},
@@ -572,7 +572,7 @@ values on the element facets. Using the compressible Euler equation
 notation, this gives, in each element $e$ with boundary $\partial e$:
 
 \begin{equation}
-  \int_e \phi\nabla\cdot(\rho\MM{u}) \diff x = -\int_e \nabla\phi \cdot (\rho\MM{u}) \diff x + \int_{\partial e} \phi\hat{\rho}\MM{u}\cdot\MM{n} \diff S, \quad \forall \phi \in \mathbb{V}^{L^2}.
+  \int_e \phi\nabla\cdot(\rho\MM{u}) \diff x = -\int_e \nabla\phi \cdot (\rho\MM{u}) \diff x + \int_{\partial e} \phi\hat{\rho}\MM{u}\cdot\MM{n} \diff S, \quad \forall \phi \in \mathbb{V}^{L^2},
 \end{equation}
 where $\hat{\rho}$ denotes the value of $\rho$ on the element
 boundary. Summing over the domain gives
@@ -592,12 +592,12 @@ contain a prognostic equation that is the advective form of the
 transport equation for a variable that is represented by a function
 that is continuous in the vertical direction but discontinuous in the
 horizontal direction. This means that the gradient of the field
-required in the transport term is not well defined. As described in
-\citet{yamazaki2017vertical}, a stable discretisation of this equation
-can be constructed by using a combination of the above upwinding
-strategy in the discontinuous horizontal direction and a
+required in the transport term is not globally defined. As described
+in \citet{yamazaki2017vertical}, a stable discretisation of this
+equation can be constructed by using a combination of the above
+upwinding strategy in the discontinuous horizontal direction and a
 streamline-upwind Petrov-Galerkin (SUPG) method
-\citep{brooks1982streamline} in the continuous vertical dirction. The
+\citep{brooks1982streamline} in the continuous vertical direction. The
 SUPG method replaces the finite element test function $\gamma$ with
 $\gamma + \tau \MM{u}\cdot\nabla\gamma$ where $\tau$ is a
 stabilisation parameter, although here we just require the vertical
