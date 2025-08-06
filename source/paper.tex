@@ -674,7 +674,7 @@ terms into horizontal and vertical components, as described in
 \citet{brown2025fast}.
 
 \subsection{Viscous and diffusive terms}
-
+\label{sec: diffusion}
 For the simulations presented here we do not require viscous or
 diffusive terms for stability, but sometimes they are required to
 produce converged solutions so that refining the grid does not
@@ -711,46 +711,86 @@ function spaces along with any other information about the space-time
 domain such as the coordinates and the timestep. The prognostic
 equation sets are each defined in a python class, making use of the
 common finite element forms for the transport and diffusion terms to
-set up the residual (defined in section \ref{}) in weak form. At this
-point, no particular discretisation of the transport or diffusion
-forms is specified. This happens in the \texttt{SpatialMethod} class
-which can be used to apply the methods described in section \ref{} to
-the relevant terms. Any physics source terms, such as **, are added by
-calling the \texttt{Physics} class that defines them. The
-\texttt{TimeStepper} class contains the definition of the timestepping
-procedure and the \texttt{run} method that loops over the
-timesteps. It also sets up diagnostic fields and calls the IO as
-required. The simplest timeloop class will just apply one time
-discretisation method to the equation set but it is common in weather
-and climate prediction models to split the different types of terms
-and apply a time discretisation separately to each type of term. For
-example, the transport and forcing terms might be solved for
+set up the residual (i.e. the left hand side of the equations defined
+in section \ref{sec: equations}) in weak form. At this point, no
+particular discretisation of the transport or diffusion forms is
+specified. This happens in the \texttt{SpatialMethod} class which can
+be used to apply the methods described in sections \ref{sec:
+  transport} and \ref{sec: diffusion} to the relevant terms. Any
+physics source terms, such as those required for moist processes or
+tubulence parameterisation, are added by calling the \texttt{Physics}
+class that defines them. The \texttt{TimeStepper} class contains the
+definition of the timestepping procedure and the \texttt{run} method
+that loops over the timesteps. It also sets up diagnostic fields and
+calls the IO as required. The simplest timeloop class will just apply
+one time discretisation method to the equation set but it is common in
+weather and climate prediction models to split the different types of
+terms and apply a time discretisation separately to each type of
+term. For example, the transport and forcing terms might be solved for
 separately, such as in **, which enables explicit transport schemes to
 be applied to each field. ** something about SIQN structure. Terms
 involved in physics parameterisations are evaluated in the appropriate
 part of the iteration loop, with physics processes that occur on
 `fast' timescales evaluated more frequently and `slower' physics
-processes evaluated just once at the end of the timestep. The choice
-of where to evaluate the physics processes in the iteration is also
-based on the computational cost and the best way to do this is still
-an open research question (**ref).
+processes evaluated just once at the end of the timestep. Since the
+test cases presented later only use simple moist physics
+parameterisations, we just include the option to solve for these at
+the end of the timestep.
 
-\begin{itemize}
-\item what about initialisation and diagnostics?
-\end{itemize}
-
-\begin{algorithm}
-  \caption{Pseudocode for SIQN timestep loop}\label{alg:SIQN}
-  \begin{algorithmic}
-    \STATE
-  \end{algorithmic}
+\begin{algorithm} 
+  \caption{Basic timestepping scheme}
+  \label{alg: basic}
+  \begin{algorithmic}[1]
+    \STATE Replace transport and diffusion terms with specified spatial discretisation scheme.
+    \STATE Setup IO and diagnostics and write out initial conditions.
+    \WHILE{$t < t_{max}$}
+      \STATE Apply timestepping scheme to equation set: $\chi^{n+1} = \mathcal{T}(\chi^n, \chi^{n+1})$
+      \STATE Advance timestep: $\chi^n = \chi^{n+1}$
+      \IF{ndt \% nts == 0}
+        \STATE Update timeseries diagnostics file.
+      \ENDIF
+      \IF{ndt \% ndiag == 0}
+        \STATE Compute and write out diagnostic fields.
+      \ENDIF
+      \IF{ndt \% nchk == 0}
+        \STATE Write out checkpoint file.
+      \ENDIF
+    \ENDWHILE
+  \end{algorithmic} 
 \end{algorithm}
 
-\begin{itemize}
-\item generic example(s) - no FML, just pseudocode for basic
-  timestepper, SIQN and split physics
-\item lead in to next section... facilitated by FML i.e. timesteppers don't care what equations they're given because forms are labelled
-\end{itemize}
+\begin{algorithm} 
+  \caption{Split physics timestepping scheme}
+  \label{alg: split physics}
+  \begin{algorithmic}[1]
+    \STATE Dynamics step: $\chi^{n+1} = \mathcal{D}(\chi^n)$
+    \FOR {$\mathcal{P}$ in physics schemes}
+      \STATE Apply physics scheme: $\chi^{n+1} = \chi^{n+1} + \mathcal{P}(\chi^{n+1})$
+    \ENDFOR
+    \STATE Advance timestep: $\chi^n = \chi^{n+1}$
+  \end{algorithmic} 
+\end{algorithm}
+
+\begin{algorithm} 
+  \caption{Semi-implicit quasi-Newton timestepping scheme}
+  \label{alg: SIQN}
+  \begin{algorithmic}[1]
+    \STATE Set: $\chi^{n+1} = \chi^{n}$
+    \STATE Explicit forcing: $\chi_{f, e} = \chi^n + \frac{1}{2}\Delta t \mathcal{F}(\chi^n)$
+    \FOR {$OUTER$}
+      \STATE Update advecting velocity: $\bar{\MM{u}} = \frac{1}{2} (\MM{u}^{n+1} + \MM{u}^n)$
+      \STATE Explicit transport: $\chi_T = \mathcal{A}_{\bar{\MM{u}}}(\chi_{f,e})$
+      \FOR {$INNER$}
+        \STATE Implicit forcing: $\chi_{f,i} = \chi_T + \frac{1}{2}\Delta t \mathcal{F}(\chi^{n+1})$
+        \STATE Write residual: $\chi_{r} = \chi_{f,i} - \chi^{n+1}$
+        \STATE Solve: $\mathcal{S}(\chi') = \chi_{r}$ for $\chi'$
+        \STATE Increment: $\chi^{n+1} = \chi^{n+1} + \chi'$
+      \ENDFOR
+    \ENDFOR
+    \STATE Explicit physics: $\chi^{n+1} = \mathcal{P}(\chi^{n+1})$
+    \STATE Advance timestep: $\chi^n = \chi^{n+1}$
+  \end{algorithmic} 
+\end{algorithm}
 
 \section{Form Manipulation Language}
 \label{sec: FML}
