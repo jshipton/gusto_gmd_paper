@@ -489,9 +489,10 @@ section ** and other refs). To solve the nonlinear equation sets we
 need to introduce stable and accurate discretisations of the transport
 terms and the nonlinear pressure gradient term in the compressible
 Euler equation set. In addition, some test cases require viscous and
-diffusive terms to generate converged solutions \ref{}. In the
-following subsections we illustrate a non-exhaustive selection of the
-options available in Gusto.
+diffusive terms to generate converged solutions (for example
+\citet{straka1993numerical}). In the following subsections we
+illustrate a non-exhaustive selection of the options available in
+Gusto.
 
 \subsection{Pressure gradient term}
 The pressure gradient term is discretised in a similar way for each
@@ -988,7 +989,7 @@ The chemicals interact such that the sum $m_T=m_X+2m_{X_2}$ should be preserved,
 When positivity or monotonicity limiters are applied to the numerical transport scheme, this may break the correlation between the two species which will be highlighted by this test.
 This test is also a demonstration of simple ``physics-dynamics coupling'', as the conversion term between the species can be handled separately from the transport terms. \\
 \\
-For this test, we use the DG upwind scheme described in Section \ref{sec:transport} to transport the species on an icosahedral sphere mesh, and apply the vertex-based limiter of \citet{kuzmin2010vertex}.
+For this test, we use the DG upwind scheme described in Section \ref{subsec: DG transport} to transport the species on an icosahedral sphere mesh, and apply the vertex-based limiter of \citet{kuzmin2010vertex}.
 The term describing the chemical reaction is separated from the transport term using a simple sequential splitting, as described in Section \ref{sec:seq splitting}. \\
 \\
 Figure \ref{fig:terminator} shows the mixing ratios of the two individual species at the initial time and following a single rotation around the sphere by a deformational flow.
@@ -1118,7 +1119,7 @@ Steady Geostrophic Flow & Linear Shallow Water & Trapezium Rule & Multiple & ?? 
 Unstable Jet & Shallow Water & SIQN & BDM1 and RT1 & I64 and C100 & None & 150 s & 6 days \\
 Density Current & Compressible Euler & SIQN & RT0 and RT1 & 100 m and 200 m & 64 and 32 & 1 s & 900 s \\
 Rising Thermal & Moist Compressible Euler & SIQN & RT1 & $\Delta x = \Delta y = \frac{10}{81}$ km & 81 & 2 s & 1000 s \\
-Baroclinic Wave & Compressible Euler & SIQN & RT1 & C32 & 15 & 900 s & 10 days
+Baroclinic Wave & Compressible Euler & SIQN & RT1 & C32 & 15 & 900 s & 10 days \\
 \bottomhline
 \end{tabular}
 \belowtable{Notation: RT$x$ refers to the de Rham complex that uses the Raviart-Thomas elements on quadrilateral cells for the HDiv function space, and results in an $x$-th order polynomials for the $L_2$ space. Similarly, BDM$x$ refers to the Brezzi-Douglas-Marini de Rham complex on triangular cells.
