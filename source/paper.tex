@@ -788,16 +788,35 @@ calls the IO as required. The simplest timeloop class will just apply
 one time discretisation method to the equation set but it is common in
 weather and climate prediction models to split the different types of
 terms and apply a time discretisation separately to each type of
-term. For example, the transport and forcing terms might be solved for
-separately, such as in **, which enables explicit transport schemes to
-be applied to each field. ** something about SIQN structure. Terms
-involved in physics parameterisations are evaluated in the appropriate
-part of the iteration loop, with physics processes that occur on
-`fast' timescales evaluated more frequently and `slower' physics
-processes evaluated just once at the end of the timestep. Since the
-test cases presented later only use simple moist physics
-parameterisations, we just include the option to solve for these at
-the end of the timestep.
+term. For example, in \citet{} the transport and forcing terms are
+solved separately, enabling subcycling of transport schemes and a
+larger stable Courant number. Terms involved in physics
+parameterisations are evaluated in the appropriate part of the
+iteration loop, with physics processes that occur on `fast' timescales
+evaluated more frequently and `slower' physics processes evaluated
+just once at the end of the timestep. Since the test cases presented
+later only use simple moist physics parameterisations, we only
+describe the option to solve for these at the end of the timestep.
+
+In Algorithm \ref{alg: basic} we show the basic structure of the
+timestepping loop in Gusto. The first step is to modify the equation
+residual to apply the spatial discretisation (for example, the DG
+upwind or SUPG discretisations described in section \ref{sec:
+  transport}). Before entering the timestepping loop, we set up the
+IO, including any diagnostics, and write out the initial
+conditions. In this basic timestepper, the timestepping loops just
+applies the timestepping scheme to the equation set. Any output is
+then decised based on the frequencies specified by the user. For
+example, we output a timeseries of diagnostics, such as minimum and
+maximum values of the fields, every \texttt{nts} timesteps; we output
+the diagnostic fields every \texttt{ndiag} timesteps and we write out
+checkpointing files every \texttt{nchk} timesteps. Checkpointing files
+can be used to initialise a new simulation or to compare to previous
+output.
+
+Algorithms \ref{alg: split physics} and \ref{alg: SIQN} we illustrate
+two more complex timestepping algorithms. These replace lines 4-5 in
+Algorithm \ref{alg: basic}.
 
 \begin{algorithm} 
   \caption{Basic timestepping scheme}
@@ -817,6 +836,7 @@ the end of the timestep.
       \IF{ndt \% nchk == 0}
         \STATE Write out checkpoint file.
       \ENDIF
+      \STATE $t \gets t + \Delta t$
     \ENDWHILE
   \end{algorithmic} 
 \end{algorithm}
