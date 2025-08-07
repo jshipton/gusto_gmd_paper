@@ -139,7 +139,52 @@
 
 
 \begin{abstract}
-TEXT
+Gusto is a python code library for building dynamical cores that are
+the heart of weather and climate prediction models. Gusto is built on
+top of Firedrake which provides the software infrastructure required
+to solve partial differential equations using the finite element
+method. The compressible Euler equations solved by the dynamical core
+have a particular mathematical structure that should be preserved by
+the spatial discretisation. Recent research has shown that one way to
+do this is using compatible finite element methods which also have the
+advantage that this structure is preserved even on non-orthogonal
+grids, enabling better parallel scaling through spatial domain
+decomposition. This was the motivation for the development of the Met
+Office new dynamical core, LFRic. However, there are different
+families of compatible finite element method that can be defined on
+different grids, such as the cubed sphere or icosahedral sphere
+grids. For each family the different prognostic fields are discretised
+using finite element spaces that have different orders and
+interelement continuity. These function spaces can be difficult to
+construct, in particular on the sphere where the Piola transform is
+required to ensure that the horizontal wind vector is tangential to
+the sphere. In addition, when simulating flows that have a much larger
+horizontal scale than vertical scale, it is advantageous to have
+meshes that are aligned in vertical columns; Firedrake provides such
+meshes and Gusto provides the correct finite element families for the
+compatible finite element method and a range of algorithms for stable
+and accurate timestepping fields discretised on these finite element
+spaces.
+
+Gusto is intended as a tool for rapid prototyping of new algorithms,
+based on compatible finite element methods, for dynamical cores. In
+this context, the development of new algorithms typically follows a
+path where they are tested on simpler equation sets such as the
+shallow water equations or the Boussinesq equations. These equation
+sets share important features of the mathematical structure of the
+compressible Euler equation set and so provide a good indication of
+whether new algorithms will work in a dynamical core, but they provide
+a simpler setting for investigating the properties of the
+algorithms. Therefore Gusto provides compatible finite element spatial
+discretisations of these equation sets and then the timestepping
+algorithms are written in such a way that they can be applied to any
+of these equation sets. ** write a bit more about what this enables?
+** talk about physics?
+
+In this paper we describe the algorithms implemented in Gusto and
+demonstrate their accuracy (and efficiency?) when applied to the
+hierarchy of test problems commonly used in the numerical weather
+prediction community.
 \end{abstract}
 
 \begin{itemize}
@@ -680,12 +725,12 @@ For the simulations presented here we do not require viscous or
 diffusive terms for stability, but sometimes they are required to
 produce converged solutions so that refining the grid does not lead to
 smaller and smaller scale motions. Viscous or diffusive terms involve
-the laplacian of the prognostic field, which in all cases is not
+the laplacian of the prognostic field, which for all fields is not
 globally defined for the finite element function spaces we use in this
-paper. Here we present the symmetric interior penalty discretisation
-method \citep{cockburn2007note} applied to the viscous term that we
-add to the prognostic velocity equation when required. This method can
-be adapted to apply to scalar fields when required.
+paper. In Gusto we use the symmetric interior penalty discretisation
+method \citep{cockburn2007note} which we descirbe below applied to the
+viscous term added to the prognostic velocity equation when
+required. This method can be adapted to apply to scalar fields.
 
 First we multiply the term $\nu\nabla^2\MM{u}$ by a test function
 $\MM{w}\in\mathbb{V}^{HDiv}$, where $\nu$ is the viscosity
